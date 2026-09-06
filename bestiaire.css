@@ -1,215 +1,224 @@
 /* ==========================================
-       1. THÈME SOMBRE ET VARIABLES
-       ========================================== */
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+   1. THÈME SOMBRE ET VARIABLES
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 
-    :root {
-      --bg-body: #09090a;
-      --bg-grimoire: #161412; 
-      --bg-card: #201d19;
-      --text-main: #d3c4a9; 
-      --text-muted: #8c7d6b;
-      --accent-gold: #c2a057; 
-      --accent-red: #8f2d2d; 
-      --border-color: #3d2b1f;
-      --font-title: 'Cinzel', serif;
-      --font-body: 'Crimson Text', serif;
-    }
+:root {
+  --bg-body: #09090a;
+  --bg-grimoire: #161412;
+  --bg-card: #201d19;
+  --text-main: #d3c4a9;
+  --text-muted: #8c7d6b;
+  --accent-gold: #c2a057;
+  --accent-red: #8f2d2d;
+  --border-color: #3d2b1f;
+  --font-title: 'Cinzel', serif;
+  --font-body: 'Crimson Text', serif;
+}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+/* IMPORTANT : tout est volontairement préfixé par .book-container / #creatureModal.
+   Ce fichier est chargé sur TOUTE la page du sujet Forumactif (pas seulement
+   sur notre bloc), donc des règles "nues" comme "*", "body" ou "header"
+   modifieraient aussi l'en-tête, les marges et tout le reste du forum
+   autour du bestiaire. C'est ce qui causait le décalage général de la page. */
 
-    body {
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      font-family: var(--font-body);
-      line-height: 1.6;
-      padding: 20px;
-      font-size: 1.1rem;
-    }
+.book-container,
+.book-container *,
+#creatureModal,
+#creatureModal * {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+  float: none !important;
+}
 
-    .book-container {
-      display: block !important;
-      width: 100% !important;
-      max-width: 700px !important;
-      margin: 0 auto !important;
-      background-color: var(--bg-grimoire);
-      padding: 24px 28px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.5);
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      overflow: hidden;
-    }
+.book-container {
+  display: block !important;
+  width: 100% !important;
+  max-width: 650px !important;
+  margin: 20px auto !important;
+  background-color: var(--bg-grimoire);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-size: 1rem;
+  padding: 18px 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.5);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
 
-    header { text-align: center; margin-bottom: 40px; }
-    header h1 {
-      font-family: var(--font-title);
-      color: var(--accent-gold);
-      font-size: 2.1rem;
-      letter-spacing: 1.5px;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 15px;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    }
-    header p { font-style: italic; color: var(--text-muted); font-size: 1.2rem; }
+.book-container header { text-align: center; margin-bottom: 26px; }
+.book-container header h1 {
+  font-family: var(--font-title);
+  color: var(--accent-gold);
+  font-size: 1.6rem;
+  letter-spacing: 1.5px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+.book-container header p { font-style: italic; color: var(--text-muted); font-size: 0.95rem; }
 
-    /* ==========================================
-       2. RECHERCHE ET FILTRES
-       ========================================== */
-    .controls {
-      display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;
-      justify-content: center; padding-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .search-bar input {
-      padding: 10px 15px; background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border-color); color: var(--text-main);
-      font-family: var(--font-title); font-size: 1.1rem;
-      width: 300px; text-align: center; border-radius: 4px;
-    }
-    .search-bar input:focus { outline: none; border-color: var(--accent-gold); }
-    .filters { display: flex; gap: 15px; }
-    .filter-btn {
-      background: transparent; border: 1px solid var(--border-color);
-      color: var(--text-muted); font-family: var(--font-title);
-      padding: 8px 18px; cursor: pointer; transition: all 0.3s;
-      font-size: 1rem; border-radius: 4px;
-    }
-    .filter-btn:hover, .filter-btn.active {
-      background: var(--border-color); color: var(--accent-gold);
-      border-color: var(--accent-gold);
-    }
+/* ==========================================
+   2. RECHERCHE ET FILTRES
+   ========================================== */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 26px;
+  justify-content: center; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+.search-bar input {
+  padding: 7px 12px; background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-color); color: var(--text-main);
+  font-family: var(--font-title); font-size: 0.95rem;
+  width: 220px; max-width: 100%; text-align: center; border-radius: 4px;
+}
+.search-bar input:focus { outline: none; border-color: var(--accent-gold); }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.filter-btn {
+  background: transparent; border: 1px solid var(--border-color);
+  color: var(--text-muted); font-family: var(--font-title);
+  padding: 6px 13px; cursor: pointer; transition: all 0.3s;
+  font-size: 0.85rem; border-radius: 4px;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: var(--border-color); color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
 
-    /* ==========================================
-       3. GRILLE DE CARTES (Miniatures)
-       ========================================== */
-    .creatures-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px;
-    }
-    .creature-card {
-      background: var(--bg-card); border: 1px solid var(--border-color);
-      padding: 10px; text-align: center; border-radius: 4px;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .creature-card:hover {
-      transform: translateY(-5px); box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1);
-      border-color: var(--accent-gold);
-    }
-    .img-container {
-      position: relative; cursor: pointer; overflow: hidden;
-      border: 1px solid #000; margin-bottom: 10px;
-    }
-    .creature-img {
-      width: 100%; height: 250px; object-fit: cover;
-      transition: transform 0.4s; filter: grayscale(30%) contrast(1.1); display: block;
-    }
-    .img-container:hover .creature-img { transform: scale(1.05); filter: grayscale(0%); }
-    .img-overlay {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6); color: var(--accent-gold);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-title); font-size: 1.2rem;
-      opacity: 0; transition: opacity 0.3s;
-    }
-    .img-container:hover .img-overlay { opacity: 1; }
-    .creature-name {
-      font-family: var(--font-title); font-size: 1.3rem;
-      color: var(--accent-gold); margin-top: 10px;
-    }
-    
-    .creature-data { display: none; }
-    .no-results { grid-column: 1 / -1; text-align: center; font-style: italic; display: none; }
+/* ==========================================
+   3. GRILLE DE CARTES (Miniatures)
+   ========================================== */
+.creatures-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px;
+}
+.creature-card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  padding: 8px; text-align: center; border-radius: 4px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.creature-card:hover {
+  transform: translateY(-5px); box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1);
+  border-color: var(--accent-gold);
+}
+.img-container {
+  position: relative; cursor: pointer; overflow: hidden;
+  border: 1px solid #000; margin-bottom: 8px !important;
+}
+.creature-img {
+  width: 100%; height: 170px; object-fit: cover;
+  transition: transform 0.4s; filter: grayscale(30%) contrast(1.1); display: block;
+}
+.img-container:hover .creature-img { transform: scale(1.05); filter: grayscale(0%); }
+.img-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); color: var(--accent-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-title); font-size: 0.95rem;
+  opacity: 0; transition: opacity 0.3s;
+}
+.img-container:hover .img-overlay { opacity: 1; }
+.creature-name {
+  font-family: var(--font-title); font-size: 1rem;
+  color: var(--accent-gold); margin-top: 8px !important;
+}
 
-    /* ==========================================
-       4. FENÊTRE MODALE (POP-UP) AVANCÉE
-       ========================================== */
-    .modal {
-      display: none; position: fixed; z-index: 1000;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-      justify-content: center; align-items: center; padding: 20px;
-      opacity: 0; animation: fadeIn 0.3s forwards;
-    }
-    @keyframes fadeIn { to { opacity: 1; } }
-    
-    .modal-content {
-      background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
-      border-radius: 6px;
-      max-width: 700px;
-      width: 100%;
-      /* HAUTEUR FIXE POUR EMPÊCHER LA FENÊTRE D'ÊTRE TROP HAUTE */
-      height: 600px; 
-      max-height: 75vh; 
-      
-      display: flex; position: relative;
-      box-shadow: 0 0 40px rgba(194, 160, 87, 0.2);
-      
-      /* Masquer la scrollbar globale du conteneur si elle apparaît */
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .modal-content::-webkit-scrollbar {
-      display: none;
-    }
+.creature-data { display: none; }
+.no-results { grid-column: 1 / -1; text-align: center; font-style: italic; display: none; }
 
-    .close-btn {
-      position: absolute; top: 15px; right: 20px; color: var(--text-muted);
-      font-size: 30px; font-weight: bold; cursor: pointer; transition: color 0.3s; z-index: 10;
-    }
-    .close-btn:hover { color: var(--accent-red); }
+/* ==========================================
+   4. FENÊTRE MODALE (POP-UP) AVANCÉE
+   ========================================== */
+.modal {
+  display: none; position: fixed; z-index: 1000;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+  justify-content: center; align-items: center; padding: 16px;
+  opacity: 0; animation: fadeIn 0.3s forwards;
+}
+@keyframes fadeIn { to { opacity: 1; } }
 
-    /* IMAGE MOINS LARGE (30%) */
-    .modal-left {
-      flex: 0 0 32%;
-      max-width: 240px;
-      border-right: 1px solid var(--border-color);
-    }
-    .modal-left img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    
-    .modal-right {
-      flex: 1; padding: 26px;
-      overflow-y: auto; /* Permet au texte de défiler si nécessaire */
-      display: flex; flex-direction: column; gap: 25px;
-      
-      /* MASQUER LA SCROLLBAR DE LA ZONE DE TEXTE */
-      -ms-overflow-style: none;  /* IE et Edge */
-      scrollbar-width: none;  /* Firefox */
-    }
-    .modal-right::-webkit-scrollbar {
-      display: none; /* Chrome, Safari et Opera */
-    }
-    
-    .modal-title {
-      font-family: var(--font-title); color: var(--accent-gold);
-      font-size: 2.5rem; line-height: 1.1; text-align: center;
-      border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 10px;
-    }
+.modal-content {
+  background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
+  border-radius: 6px;
+  max-width: 560px;
+  width: 100%;
+  /* HAUTEUR FIXE POUR EMPÊCHER LA FENÊTRE D'ÊTRE TROP HAUTE */
+  height: 500px;
+  max-height: 80vh;
 
-    .info-section { display: flex; flex-direction: column; gap: 5px; }
-    
-    .info-heading {
-      font-family: var(--font-title); font-size: 1.1rem; color: var(--accent-red);
-      text-transform: uppercase; letter-spacing: 1.5px;
-    }
+  display: flex; position: relative;
+  box-shadow: 0 0 40px rgba(194, 160, 87, 0.2);
 
-    .modal-family { font-style: italic; color: var(--text-main); font-size: 1.2rem; }
-    
-    .modal-desc { text-align: justify; }
-    .modal-desc p::first-letter {
-      font-family: var(--font-title); font-size: 2.2rem; color: var(--accent-gold);
-      float: left; line-height: 0.8; padding-right: 8px;
-    }
+  /* Masquer la scrollbar globale du conteneur si elle apparaît */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.modal-content::-webkit-scrollbar {
+  display: none;
+}
 
-    .rpg-list ul { list-style: none; padding-left: 10px; }
-    .rpg-list li { position: relative; padding-left: 20px; margin-bottom: 5px; }
-    .rpg-list li::before {
-      content: '✦'; position: absolute; left: 0; color: var(--accent-gold); font-size: 0.9rem;
-    }
-    .rpg-list strong { color: var(--accent-gold); font-weight: normal; font-family: var(--font-title); letter-spacing: 1px; }
+.close-btn {
+  position: absolute; top: 12px; right: 16px; color: var(--text-muted);
+  font-size: 26px; font-weight: bold; cursor: pointer; transition: color 0.3s; z-index: 10;
+}
+.close-btn:hover { color: var(--accent-red); }
 
-    .stats-grid ul { display: grid; grid-template-columns: 1fr; gap: 8px; }
+/* IMAGE MOINS LARGE (30%) */
+.modal-left {
+  flex: 0 0 32%;
+  max-width: 170px;
+  border-right: 1px solid var(--border-color);
+}
+.modal-left img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    @media (max-width: 800px) {
-      .modal-content { flex-direction: column; height: auto; max-height: 90vh; }
-      .modal-left { max-width: 100%; height: 250px; border-right: none; border-bottom: 1px solid var(--border-color); }
-    }
+.modal-right {
+  flex: 1; padding: 18px;
+  overflow-y: auto; /* Permet au texte de défiler si nécessaire */
+  display: flex; flex-direction: column; gap: 16px;
+
+  /* MASQUER LA SCROLLBAR DE LA ZONE DE TEXTE */
+  -ms-overflow-style: none;  /* IE et Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.modal-right::-webkit-scrollbar {
+  display: none; /* Chrome, Safari et Opera */
+}
+
+.modal-title {
+  font-family: var(--font-title); color: var(--accent-gold);
+  font-size: 1.6rem; line-height: 1.1; text-align: center;
+  border-bottom: 1px solid var(--border-color); padding-bottom: 10px !important; margin-bottom: 6px !important;
+}
+
+.info-section { display: flex; flex-direction: column; gap: 4px; }
+
+.info-heading {
+  font-family: var(--font-title); font-size: 0.9rem; color: var(--accent-red);
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+.modal-family { font-style: italic; color: var(--text-main); font-size: 1rem; }
+
+.modal-desc { text-align: justify; font-size: 0.95rem; }
+.modal-desc p::first-letter {
+  font-family: var(--font-title); font-size: 1.9rem; color: var(--accent-gold);
+  float: left; line-height: 0.8; padding-right: 6px !important;
+}
+
+.rpg-list ul { list-style: none; padding-left: 8px !important; }
+.rpg-list li { position: relative; padding-left: 18px !important; margin-bottom: 4px !important; font-size: 0.9rem; }
+.rpg-list li::before {
+  content: '✦'; position: absolute; left: 0; color: var(--accent-gold); font-size: 0.8rem;
+}
+.rpg-list strong { color: var(--accent-gold); font-weight: normal; font-family: var(--font-title); letter-spacing: 1px; }
+
+.stats-grid ul { display: grid; grid-template-columns: 1fr; gap: 6px; }
+
+@media (max-width: 620px) {
+  .modal-content { flex-direction: column; height: auto; max-height: 90vh; }
+  .modal-left { max-width: 100%; height: 180px; border-right: none; border-bottom: 1px solid var(--border-color); }
+}
