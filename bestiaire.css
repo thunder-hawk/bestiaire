@@ -113,6 +113,7 @@
   padding: 8px; text-align: center; border-radius: 4px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
+
 .creature-card:hover {
   transform: translateY(-5px); box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1);
   border-color: var(--accent-gold);
@@ -125,6 +126,11 @@
 }
 .creature-img {
   width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  /* La plupart des illustrations sont des portraits "en pied" avec le visage
+     tout en haut : object-position par défaut (centre) coupait souvent la
+     tête. "top" cadre plutôt depuis le haut de l'image, quitte à rogner un
+     peu plus le bas, qui est généralement moins important. */
+  object-position: center top;
   transition: transform 0.4s; filter: grayscale(30%) contrast(1.1); display: block;
 }
 .img-container:hover .creature-img { transform: scale(1.05); filter: grayscale(0%); }
