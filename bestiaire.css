@@ -30,7 +30,7 @@
     .book-container {
       display: block !important;
       width: 100% !important;
-      max-width: 650px !important;
+      max-width: 700px !important;
       margin: 0 auto !important;
       background-color: var(--bg-grimoire);
       padding: 24px 28px;
@@ -135,7 +135,7 @@
     .modal-content {
       background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
       border-radius: 6px;
-      max-width: 650px;
+      max-width: 700px;
       width: 100%;
       /* HAUTEUR FIXE POUR EMPÊCHER LA FENÊTRE D'ÊTRE TROP HAUTE */
       height: 600px; 
