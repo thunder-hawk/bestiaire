@@ -61,6 +61,8 @@ function initInstance(instance) {
   function filterCreatures() {
     cards.forEach(card => {
       const name = card.querySelector('.creature-name').textContent.toLowerCase();
+      const lootEl = card.querySelector('.data-loot');
+      const loot = lootEl ? lootEl.textContent.toLowerCase() : '';
       // Plusieurs catégories possibles, séparées par une virgule :
       // data-category="Dragons, Légendaire"
       const categories = (card.getAttribute('data-category') || '')
@@ -68,7 +70,9 @@ function initInstance(instance) {
         .map(c => c.trim())
         .filter(Boolean);
 
-      const matchesSearch = name.includes(currentSearch);
+      // La recherche regarde à la fois le nom ET le loot, pour retrouver
+      // qui drop tel objet (ex: taper "gemme" trouve la créature qui la lâche).
+      const matchesSearch = name.includes(currentSearch) || loot.includes(currentSearch);
       const matchesFilter = (currentFilter === 'all') || categories.includes(currentFilter);
 
       card.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
