@@ -159,13 +159,14 @@
 .modal-content {
   background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
   border-radius: 6px;
-  max-width: 560px;
+  max-width: 650px;
   width: 100%;
   /* HAUTEUR FIXE POUR EMPÊCHER LA FENÊTRE D'ÊTRE TROP HAUTE */
   height: 500px;
   max-height: 80vh;
 
   display: flex; position: relative;
+  gap: 16px;
   box-shadow: 0 0 40px rgba(194, 160, 87, 0.2);
 
   /* Masquer la scrollbar globale du conteneur si elle apparaît */
@@ -182,15 +183,14 @@
 }
 .close-btn:hover { color: var(--accent-red); }
 
-/* IMAGE MOINS LARGE (30%) */
+/* IMAGE : un peu plus large pour mieux profiter de l'illustration */
 .modal-left {
-  flex: 0 0 32%;
-  max-width: 170px;
-  border-right: 1px solid var(--border-color);
+  flex: 0 0 38%;
+  max-width: 240px;
   display: flex; /* même raison que .img-container : neutralise les
                      espaces/retours ajoutés par l'éditeur autour de l'image */
 }
-.modal-left img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.modal-left img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 4px; }
 
 .modal-right {
   flex: 1; padding: 18px;
