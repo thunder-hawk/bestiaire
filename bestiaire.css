@@ -159,7 +159,7 @@
 .modal-content {
   background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
   border-radius: 6px;
-  max-width: 650px;
+  max-width: 750px;
   width: 100%;
   /* HAUTEUR FIXE POUR EMPÊCHER LA FENÊTRE D'ÊTRE TROP HAUTE */
   height: 500px;
@@ -186,7 +186,7 @@
 /* IMAGE : un peu plus large pour mieux profiter de l'illustration */
 .modal-left {
   flex: 0 0 38%;
-  max-width: 240px;
+  max-width: 280px;
   display: flex; /* même raison que .img-container : neutralise les
                      espaces/retours ajoutés par l'éditeur autour de l'image */
 }
