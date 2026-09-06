@@ -32,6 +32,16 @@
   float: none !important;
 }
 
+/* Filet de sécurité : l'éditeur de message Forumactif ajoute souvent des
+   <br> tout seul quand on colle le code en mode visuel plutôt qu'en mode
+   "source" (chaque retour à la ligne du code devient un saut de ligne
+   affiché). On les masque partout dans le bestiaire pour ne plus jamais
+   avoir ces grands espaces vides, même si ça arrive à nouveau. */
+.book-container br,
+#creatureModal br {
+  display: none !important;
+}
+
 .book-container {
   display: block !important;
   width: 100% !important;
@@ -93,7 +103,10 @@
    3. GRILLE DE CARTES (Miniatures)
    ========================================== */
 .creatures-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+@media (max-width: 380px) {
+  .creatures-grid { grid-template-columns: repeat(1, 1fr); }
 }
 .creature-card {
   background: var(--bg-card); border: 1px solid var(--border-color);
@@ -107,9 +120,11 @@
 .img-container {
   position: relative; cursor: pointer; overflow: hidden;
   border: 1px solid #000; margin-bottom: 8px !important;
+  display: flex; /* évite qu'un espace/retour à la ligne collé autour de
+                     l'image par l'éditeur du forum ne pousse l'image */
 }
 .creature-img {
-  width: 100%; height: 170px; object-fit: cover;
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
   transition: transform 0.4s; filter: grayscale(30%) contrast(1.1); display: block;
 }
 .img-container:hover .creature-img { transform: scale(1.05); filter: grayscale(0%); }
@@ -172,6 +187,8 @@
   flex: 0 0 32%;
   max-width: 170px;
   border-right: 1px solid var(--border-color);
+  display: flex; /* même raison que .img-container : neutralise les
+                     espaces/retours ajoutés par l'éditeur autour de l'image */
 }
 .modal-left img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
