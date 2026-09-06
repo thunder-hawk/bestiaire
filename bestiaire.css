@@ -28,8 +28,10 @@
     }
 
     .book-container {
-      max-width: 1100px;
-      margin: 0 auto;
+      display: block !important;
+      width: 100% !important;
+      max-width: 1100px !important;
+      margin: 0 auto !important;
       background-color: var(--bg-grimoire);
       padding: 40px 60px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.5);
