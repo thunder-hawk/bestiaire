@@ -45,10 +45,15 @@ function initBestiaire() {
       function filterCreatures() {
         cards.forEach(card => {
           const name = card.querySelector('.creature-name').textContent.toLowerCase();
-          const category = card.getAttribute('data-category');
-          
+          // Plusieurs catégories possibles, séparées par une virgule :
+          // data-category="Dragons, Légendaire"
+          const categories = (card.getAttribute('data-category') || '')
+            .split(',')
+            .map(c => c.trim())
+            .filter(Boolean);
+
           const matchesSearch = name.includes(currentSearch);
-          const matchesFilter = (currentFilter === 'all') || (category === currentFilter);
+          const matchesFilter = (currentFilter === 'all') || categories.includes(currentFilter);
 
           card.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
         });
