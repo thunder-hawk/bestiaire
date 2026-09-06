@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bestiaire RP - Fiches Détaillées</title>
+  <style>
+    /* ==========================================
+       1. THÈME SOMBRE ET VARIABLES
+       ========================================== */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+    :root {
+      --bg-body: #09090a;
+      --bg-grimoire: #161412; 
+      --bg-card: #201d19;
+      --text-main: #d3c4a9; 
+      --text-muted: #8c7d6b;
+      --accent-gold: #c2a057; 
+      --accent-red: #8f2d2d; 
+      --border-color: #3d2b1f;
+      --font-title: 'Cinzel', serif;
+      --font-body: 'Crimson Text', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      padding: 20px;
+      font-size: 1.1rem;
+    }
+
+    .book-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background-color: var(--bg-grimoire);
+      padding: 40px 60px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 50px rgba(0,0,0,0.5);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    header { text-align: center; margin-bottom: 40px; }
+    header h1 {
+      font-family: var(--font-title);
+      color: var(--accent-gold);
+      font-size: 3rem;
+      letter-spacing: 3px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 15px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+    header p { font-style: italic; color: var(--text-muted); font-size: 1.2rem; }
+
+    /* ==========================================
+       2. RECHERCHE ET FILTRES
+       ========================================== */
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;
+      justify-content: center; padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .search-bar input {
+      padding: 10px 15px; background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color); color: var(--text-main);
+      font-family: var(--font-title); font-size: 1.1rem;
+      width: 300px; text-align: center; border-radius: 4px;
+    }
+    .search-bar input:focus { outline: none; border-color: var(--accent-gold); }
+    .filters { display: flex; gap: 15px; }
+    .filter-btn {
+      background: transparent; border: 1px solid var(--border-color);
+      color: var(--text-muted); font-family: var(--font-title);
+      padding: 8px 18px; cursor: pointer; transition: all 0.3s;
+      font-size: 1rem; border-radius: 4px;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--border-color); color: var(--accent-gold);
+      border-color: var(--accent-gold);
+    }
+
+    /* ==========================================
+       3. GRILLE DE CARTES (Miniatures)
+       ========================================== */
+    .creatures-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 30px;
+    }
+    .creature-card {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      padding: 10px; text-align: center; border-radius: 4px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .creature-card:hover {
+      transform: translateY(-5px); box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1);
+      border-color: var(--accent-gold);
+    }
+    .img-container {
+      position: relative; cursor: pointer; overflow: hidden;
+      border: 1px solid #000; margin-bottom: 10px;
+    }
+    .creature-img {
+      width: 100%; height: 250px; object-fit: cover;
+      transition: transform 0.4s; filter: grayscale(30%) contrast(1.1); display: block;
+    }
+    .img-container:hover .creature-img { transform: scale(1.05); filter: grayscale(0%); }
+    .img-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6); color: var(--accent-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-title); font-size: 1.2rem;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .img-container:hover .img-overlay { opacity: 1; }
+    .creature-name {
+      font-family: var(--font-title); font-size: 1.3rem;
+      color: var(--accent-gold); margin-top: 10px;
+    }
+    
+    /* On cache toutes les données complètes pour la modale */
+    .creature-data { display: none; }
+    .no-results { grid-column: 1 / -1; text-align: center; font-style: italic; display: none; }
+
+    /* ==========================================
+       4. FENÊTRE MODALE (POP-UP) AVANCÉE
+       ========================================== */
+    .modal {
+      display: none; position: fixed; z-index: 1000;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+      justify-content: center; align-items: center; padding: 20px;
+      opacity: 0; animation: fadeIn 0.3s forwards;
+    }
+    @keyframes fadeIn { to { opacity: 1; } }
+    
+    .modal-content {
+      background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
+      border-radius: 6px; max-width: 1000px; width: 100%; max-height: 90vh;
+      display: flex; position: relative;
+      box-shadow: 0 0 40px rgba(194, 160, 87, 0.2);
+    }
+    .close-btn {
+      position: absolute; top: 15px; right: 20px; color: var(--text-muted);
+      font-size: 30px; font-weight: bold; cursor: pointer; transition: color 0.3s; z-index: 10;
+    }
+    .close-btn:hover { color: var(--accent-red); }
+
+    .modal-left { flex: 0 0 40%; border-right: 1px solid var(--border-color); }
+    .modal-left img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    /* Panneau droit : Les informations détaillées */
+    .modal-right {
+      flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 25px;
+    }
+    
+    .modal-title {
+      font-family: var(--font-title); color: var(--accent-gold);
+      font-size: 2.5rem; line-height: 1.1; text-align: center;
+      border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 10px;
+    }
+
+    /* Style des sous-sections (Famille, Stats, etc.) */
+    .info-section { display: flex; flex-direction: column; gap: 5px; }
+    
+    .info-heading {
+      font-family: var(--font-title); font-size: 1.1rem; color: var(--accent-red);
+      text-transform: uppercase; letter-spacing: 1.5px;
+    }
+
+    .modal-family { font-style: italic; color: var(--text-main); font-size: 1.2rem; }
+    
+    .modal-desc { text-align: justify; }
+    .modal-desc p::first-letter {
+      font-family: var(--font-title); font-size: 2.2rem; color: var(--accent-gold);
+      float: left; line-height: 0.8; padding-right: 8px;
+    }
+
+    /* Listes pour les Stats, Capacités et Butin */
+    .rpg-list ul { list-style: none; padding-left: 10px; }
+    .rpg-list li { position: relative; padding-left: 20px; margin-bottom: 5px; }
+    .rpg-list li::before {
+      content: '✦'; position: absolute; left: 0; color: var(--accent-gold); font-size: 0.9rem;
+    }
+    .rpg-list strong { color: var(--accent-gold); font-weight: normal; font-family: var(--font-title); letter-spacing: 1px; }
+
+    /* Grille spéciale pour les statistiques pour faire "propre" */
+    .stats-grid ul { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    @media (max-width: 800px) {
+      .modal-content { flex-direction: column; }
+      .modal-left { height: 300px; border-right: none; border-bottom: 1px solid var(--border-color); }
+      .stats-grid ul { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="book-container">
+    <header>
+      <h1>Le Sombre Bestiaire</h1>
+      <p>Archives secrètes des entités de notre monde</p>
+    </header>
+
+    <div class="controls">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Chercher un monstre...">
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">Toutes</button>
+        <button class="filter-btn" data-filter="Bête">Bêtes</button>
+        <button class="filter-btn" data-filter="Démon">Démons</button>
+        <button class="filter-btn" data-filter="Mort-vivant">Morts-vivants</button>
+      </div>
+    </div>
+
+    <main class="creatures-grid" id="creaturesGrid">
+
+      <!-- ==========================================
+           FICHE 1 : LE DRAUGR (Mort-vivant)
+           ========================================== -->
+      <article class="creature-card" data-category="Mort-vivant">
+        <div class="img-container">
+          <img src="https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=600&q=80" alt="Draugr" class="creature-img">
+          <div class="img-overlay">Consulter la fiche</div>
+        </div>
+        <h2 class="creature-name">Draugr des Glaces</h2>
+        
+        <!-- DONNÉES INJECTÉES DANS LA MODALE -->
+        <div class="creature-data">
+          <div class="data-family">Mort-vivant (Guerrier maudit)</div>
+          
+          <div class="data-desc">
+            <p>Anciens guerriers nordiques refusant de trouver le repos, les Draugr errent dans les tombeaux gelés. Leurs corps sont conservés par le froid extrême, leurs armures rouillées scellées à leur chair par la glace. Ils haïssent les vivants avec une fureur guerrière inépuisable et manient des haches lourdes avec une force décuplée par la mort.</p>
+          </div>
+          
+          <div class="data-stats">
+            <ul>
+              <li><strong>Vitalité :</strong> Élevée (Insensible à la douleur)</li>
+              <li><strong>Force :</strong> Colossale</li>
+              <li><strong>Agilité :</strong> Faible (Mouvements raides)</li>
+              <li><strong>Menace :</strong> Niveau 3 (Vétéran)</li>
+            </ul>
+          </div>
+          
+          <div class="data-abilities">
+            <ul>
+              <li><strong>Souffle de Givre :</strong> Peut exhaler un nuage glacé ralentissant les mouvements de ses adversaires.</li>
+              <li><strong>Fureur du Trépas :</strong> Augmente sa vitesse d'attaque si ses membres sont sectionnés.</li>
+            </ul>
+          </div>
+          
+          <div class="data-loot">
+            <ul>
+              <li>Acier ancien gravé (Commun)</li>
+              <li>Os cristallisé par le gel (Rare)</li>
+              <li>Amulette de bravoure ternie (Épique)</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- ==========================================
+           FICHE 2 : LE LOUP-GAROU / LYCANTHROPE (Bête)
+           ========================================== -->
+      <article class="creature-card" data-category="Bête">
+        <div class="img-container">
+          <img src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef9?auto=format&fit=crop&w=600&q=80" alt="Loup" class="creature-img">
+          <div class="img-overlay">Consulter la fiche</div>
+        </div>
+        <h2 class="creature-name">Lycanthrope Sanglant</h2>
+
+        <div class="creature-data">
+          <div class="data-family">Bête (Lycanthropie / Malédiction)</div>
+          
+          <div class="data-desc">
+            <p>Monstruosité hybride mêlant la stature d'un homme à la férocité d'un loup massif. Contrairement aux fadaises des astrologues affirmant que la lune trouble le repos des humains, pour cette bête, l'astre nocturne est un catalyseur de puissance pure. La malédiction qui coule dans ses veines transforme un simple voyageur en un prédateur alpha d'une violence inouïe.</p>
+          </div>
+          
+          <div class="data-stats">
+            <ul>
+              <li><strong>Vitalité :</strong> Moyenne (Régénération active)</li>
+              <li><strong>Force :</strong> Élevée</li>
+              <li><strong>Agilité :</strong> Extrême</li>
+              <li><strong>Menace :</strong> Niveau 4 (Mortel)</li>
+            </ul>
+          </div>
+          
+          <div class="data-abilities">
+            <ul>
+              <li><strong>Hurlement d'Effroi :</strong> Paralyse temporairement de peur les esprits les plus faibles.</li>
+              <li><strong>Morsure Infectieuse :</strong> Transmet la fièvre de la lycanthropie à la victime (jet de résistance requis).</li>
+            </ul>
+          </div>
+          
+          <div class="data-loot">
+            <ul>
+              <li>Touffe de fourrure sombre (Commun)</li>
+              <li>Croc de Lycanthrope (Rare - Prisé par les alchimistes)</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- ==========================================
+           FICHE 3 : LE DÉMON (Démon)
+           ========================================== -->
+      <article class="creature-card" data-category="Démon">
+        <div class="img-container">
+          <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80" alt="Démon" class="creature-img">
+          <div class="img-overlay">Consulter la fiche</div>
+        </div>
+        <h2 class="creature-name">Démon au Cœur de Feu</h2>
+
+        <div class="creature-data">
+          <div class="data-family">Démon (Plan Infernal)</div>
+          
+          <div class="data-desc">
+            <p>Une entité née des forges abysséennes, dont la cage thoracique brisée laisse entrevoir un cœur littéralement composé de magma en fusion. Ce démon manie des chaînes chauffées à blanc et consume tout ce qui s'approche de lui. Il n'apparaît sur notre plan que lorsqu'un pacte de sang a été violemment rompu par un mortel.</p>
+          </div>
+          
+          <div class="data-stats">
+            <ul>
+              <li><strong>Vitalité :</strong> Insondable</li>
+              <li><strong>Force :</strong> Supérieure</li>
+              <li><strong>Agilité :</strong> Moyenne</li>
+              <li><strong>Menace :</strong> Niveau 5 (Fléau)</li>
+            </ul>
+          </div>
+          
+          <div class="data-abilities">
+            <ul>
+              <li><strong>Étreinte Incandescente :</strong> Ses attaques au corps-à-corps infligent de sévères brûlures magiques qui ne peuvent être soignées par la médecine classique.</li>
+              <li><strong>Aura de Cendres :</strong> Draine l'oxygène autour de lui, étouffant ceux qui l'affrontent sur la durée.</li>
+            </ul>
+          </div>
+          
+          <div class="data-loot">
+            <ul>
+              <li>Cendres infernales (Commun)</li>
+              <li>Maillon de chaîne fondue (Rare)</li>
+              <li>Cœur de Feu cristallisé (Légendaire - Utilisé pour forger des armes)</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       LA FENÊTRE MODALE DÉTAILLÉE
+       ========================================== -->
+  <div id="creatureModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeModal">&times;</span>
+      
+      <div class="modal-left">
+        <img id="modalImg" src="" alt="Illustration">
+      </div>
+      
+      <div class="modal-right">
+        <h2 id="modalTitle" class="modal-title">Nom de la créature</h2>
+        
+        <div class="info-section">
+          <div class="info-heading">Famille</div>
+          <div id="modalFamily" class="modal-family">Type</div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-heading">Description</div>
+          <div id="modalDesc" class="modal-desc">Texte</div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-heading">Statistiques de base</div>
+          <div id="modalStats" class="rpg-list stats-grid">Stats</div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-heading">Capacités spéciales</div>
+          <div id="modalAbilities" class="rpg-list">Capacités</div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-heading">Butin</div>
+          <div id="modalLoot" class="rpg-list">Loot</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.creature-card');
+      
+      // Modale
+      const modal = document.getElementById('creatureModal');
+      const closeModal = document.getElementById('closeModal');
+      
+      // Filtres et recherche
+      let currentFilter = 'all';
+      let currentSearch = '';
+
+      function filterCreatures() {
+        cards.forEach(card => {
+          const name = card.querySelector('.creature-name').textContent.toLowerCase();
+          const category = card.getAttribute('data-category');
+          
+          const matchesSearch = name.includes(currentSearch);
+          const matchesFilter = (currentFilter === 'all') || (category === currentFilter);
+
+          card.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
+        });
+      }
+
+      searchInput.addEventListener('input', (e) => {
+        currentSearch = e.target.value.toLowerCase().trim();
+        filterCreatures();
+      });
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.getAttribute('data-filter');
+          filterCreatures();
+        });
+      });
+
+      // Gestion du clic pour ouvrir la fiche
+      cards.forEach(card => {
+        const imgContainer = card.querySelector('.img-container');
+        
+        imgContainer.addEventListener('click', () => {
+          // Injection des données dans la modale
+          document.getElementById('modalImg').src = card.querySelector('.creature-img').src;
+          document.getElementById('modalTitle').textContent = card.querySelector('.creature-name').textContent;
+          
+          document.getElementById('modalFamily').textContent = card.querySelector('.data-family').textContent;
+          document.getElementById('modalDesc').innerHTML = card.querySelector('.data-desc').innerHTML;
+          document.getElementById('modalStats').innerHTML = card.querySelector('.data-stats').innerHTML;
+          document.getElementById('modalAbilities').innerHTML = card.querySelector('.data-abilities').innerHTML;
+          document.getElementById('modalLoot').innerHTML = card.querySelector('.data-loot').innerHTML;
+
+          modal.style.display = 'flex';
+        });
+      });
+
+      // Fermeture de la modale
+      closeModal.addEventListener('click', () => modal.style.display = 'none');
+      window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === "Escape" && modal.style.display === 'flex') modal.style.display = 'none';
+      });
+    });
+  </script>
+</body>
+</html>
