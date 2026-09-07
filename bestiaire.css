@@ -189,6 +189,63 @@
   border: 1px solid #000; margin-bottom: 8px !important;
   display: flex; /* évite qu'un espace/retour à la ligne collé autour de
                      l'image par l'éditeur du forum ne pousse l'image */
+  /* Position de la "torche" (mise à jour en JS au fil de la souris) */
+  --mx: 50%;
+  --my: 50%;
+}
+/* Lueur qui suit le curseur au survol, comme si on éclairait l'illustration
+   avec une torche. La position (--mx/--my) est mise à jour par le script
+   à chaque mouvement de souris au-dessus de l'image. */
+.img-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(circle 140px at var(--mx) var(--my), rgba(255, 224, 170, 0.35), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.img-container:hover::after {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .img-container::after { display: none; }
+}
+
+/* Effet d'impact au clic : un petit éclat + une onde de choc au point
+   précis cliqué, juste avant que la fenêtre détaillée ne s'ouvre. L'élément
+   .bestiaire-impact est créé et détruit par le script à chaque clic. */
+.bestiaire-impact {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(194, 160, 87, 0.75) 35%, transparent 70%);
+  pointer-events: none;
+  z-index: 50;
+  animation: bestiaire-impact 0.35s ease-out forwards;
+}
+.bestiaire-impact::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(194, 160, 87, 0.85);
+  animation: bestiaire-impact-onde 0.4s ease-out forwards;
+}
+@keyframes bestiaire-impact {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  60% { transform: translate(-50%, -50%) scale(2.2); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; }
+}
+@keyframes bestiaire-impact-onde {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(7); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bestiaire-impact { display: none; }
 }
 .creature-img {
   width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
