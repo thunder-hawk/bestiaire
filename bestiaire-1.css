@@ -246,7 +246,7 @@
 @keyframes fadeIn { to { opacity: 1; } }
 
 .modal-content {
-  background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
+  background-color: var(--bg-grimoire); border: 2px solid var(--accent-red);
   border-radius: 6px;
   max-width: 750px;
   width: 100%;
@@ -256,7 +256,8 @@
 
   display: flex; position: relative;
   gap: 16px;
-  box-shadow: 0 0 40px rgba(194, 160, 87, 0.2);
+  /* Même aura que sur les cartes, en rouge (--accent-red) au lieu du doré. */
+  box-shadow: 0 0 40px rgba(143, 45, 45, 0.3);
 
   /* Masquer la scrollbar globale du conteneur si elle apparaît */
   -ms-overflow-style: none;
