@@ -12,6 +12,12 @@
   --accent-gold: #c2a057;
   --accent-red: #8f2d2d;
   --border-color: #3d2b1f;
+  /* Couleurs des 3 statistiques de base dans la fenêtre détaillée,
+     volontairement discrètes (pas trop vives) pour rester lisibles sur
+     fond sombre sans jurer avec le reste du thème. */
+  --stat-vitalite: #8aab74;
+  --stat-vitesse: #c2ab55;
+  --stat-degats: #b1524f;
   --font-title: 'Cinzel', serif;
   --font-body: 'Crimson Text', serif;
 }
@@ -241,6 +247,14 @@
   content: '✦'; position: absolute; left: 0; color: var(--accent-gold); font-size: 0.8rem;
 }
 .rpg-list strong { color: var(--accent-gold); font-weight: normal; font-family: var(--font-title); letter-spacing: 1px; }
+
+/* Les 3 statistiques de base (Vitalité / Vitesse / Dégâts) ressortent
+   chacune avec sa propre couleur au lieu du doré générique ci-dessus.
+   Ces classes sont ajoutées automatiquement par le script quand il
+   reconnaît ces libellés : rien à faire côté contenu. */
+.rpg-list strong.stat-vitalite { color: var(--stat-vitalite); }
+.rpg-list strong.stat-vitesse { color: var(--stat-vitesse); }
+.rpg-list strong.stat-degats { color: var(--stat-degats); }
 
 .stats-grid ul { display: grid; grid-template-columns: 1fr; gap: 6px; }
 
