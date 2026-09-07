@@ -12,6 +12,12 @@
   --accent-gold: #c2a057;
   --accent-red: #8f2d2d;
   --border-color: #3d2b1f;
+  /* Couleurs des 3 statistiques de base dans la fenêtre détaillée,
+     volontairement discrètes (pas trop vives) pour rester lisibles sur
+     fond sombre sans jurer avec le reste du thème. */
+  --stat-vitalite: #8aab74;
+  --stat-vitesse: #c2ab55;
+  --stat-degats: #b1524f;
   --font-title: 'Cinzel', serif;
   --font-body: 'Crimson Text', serif;
 }
@@ -83,8 +89,8 @@
 .search-bar input {
   padding: 7px 12px; background: rgba(0,0,0,0.3);
   border: 1px solid var(--border-color); color: var(--text-main);
-  font-family: var(--font-title); font-size: 0.95rem;
-  width: 220px; max-width: 100%; text-align: center; border-radius: 4px;
+  font-family: var(--font-title); font-size: 0.85rem;
+  width: 300px; max-width: 100%; text-align: center; border-radius: 4px;
 }
 .search-bar input:focus { outline: none; border-color: var(--accent-gold); }
 .filters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
@@ -113,6 +119,7 @@
   padding: 8px; text-align: center; border-radius: 4px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
+
 .creature-card:hover {
   transform: translateY(-5px); box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1);
   border-color: var(--accent-gold);
@@ -125,6 +132,11 @@
 }
 .creature-img {
   width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  /* La plupart des illustrations sont des portraits "en pied" avec le visage
+     tout en haut : object-position par défaut (centre) coupait souvent la
+     tête. "top" cadre plutôt depuis le haut de l'image, quitte à rogner un
+     peu plus le bas, qui est généralement moins important. */
+  object-position: center top;
   transition: transform 0.4s; filter: grayscale(30%) contrast(1.1); display: block;
 }
 .img-container:hover .creature-img { transform: scale(1.05); filter: grayscale(0%); }
@@ -159,7 +171,7 @@
 .modal-content {
   background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
   border-radius: 6px;
-  max-width: 650px;
+  max-width: 750px;
   width: 100%;
   /* HAUTEUR FIXE POUR EMPÊCHER LA FENÊTRE D'ÊTRE TROP HAUTE */
   height: 500px;
@@ -186,14 +198,14 @@
 /* IMAGE : un peu plus large pour mieux profiter de l'illustration */
 .modal-left {
   flex: 0 0 38%;
-  max-width: 240px;
+  max-width: 280px;
   display: flex; /* même raison que .img-container : neutralise les
                      espaces/retours ajoutés par l'éditeur autour de l'image */
 }
 .modal-left img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 4px; }
 
 .modal-right {
-  flex: 1; padding: 26px 26px 18px 20px;
+  flex: 1; padding: 26px 26px 18px 20px !important;
   overflow-y: auto; /* Permet au texte de défiler si nécessaire */
   display: flex; flex-direction: column; gap: 16px;
 
@@ -235,6 +247,14 @@
   content: '✦'; position: absolute; left: 0; color: var(--accent-gold); font-size: 0.8rem;
 }
 .rpg-list strong { color: var(--accent-gold); font-weight: normal; font-family: var(--font-title); letter-spacing: 1px; }
+
+/* Les 3 statistiques de base (Vitalité / Vitesse / Dégâts) ressortent
+   chacune avec sa propre couleur au lieu du doré générique ci-dessus.
+   Ces classes sont ajoutées automatiquement par le script quand il
+   reconnaît ces libellés : rien à faire côté contenu. */
+.rpg-list strong.stat-vitalite { color: var(--stat-vitalite); }
+.rpg-list strong.stat-vitesse { color: var(--stat-vitesse); }
+.rpg-list strong.stat-degats { color: var(--stat-degats); }
 
 .stats-grid ul { display: grid; grid-template-columns: 1fr; gap: 6px; }
 
