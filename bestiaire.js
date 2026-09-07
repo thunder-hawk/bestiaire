@@ -7,26 +7,99 @@
    ne se mettent plus 2 par 2, image poussée dans la fiche, etc.).
    On nettoie donc le DOM une fois au chargement, avant toute mise en page,
    pour supprimer ces <br> et ces bouts de texte "vides" (espace normal ou
-   nbsp uniquement) — le vrai texte des fiches n'est jamais touché. */
+   nbsp uniquement) — le vrai texte des fiches n'est jamais touché.
+   Cas particulier : à l'intérieur d'une fiche (.creature-data), un <br>
+   sépare deux lignes utiles (ex: deux statistiques tapées l'une sous
+   l'autre) — on le transforme donc en vrai retour à la ligne au lieu de le
+   supprimer, pour ne pas recoller les lignes entre elles. */
 function nettoyerParasitesEditeur(racine) {
   const walker = document.createTreeWalker(
     racine,
     NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT
   );
-  const aSupprimer = [];
+  const brASeparer = [];
+  const brASupprimer = [];
+  const videsASupprimer = [];
   let node;
   while ((node = walker.nextNode())) {
     if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'BR') {
-      aSupprimer.push(node);
+      if (node.closest('.creature-data')) {
+        brASeparer.push(node);
+      } else {
+        brASupprimer.push(node);
+      }
     } else if (
       node.nodeType === Node.TEXT_NODE &&
       node.textContent.length > 0 &&
-      /^[\s ]*$/.test(node.textContent)
+      /^[\s ]*$/.test(node.textContent)
     ) {
-      aSupprimer.push(node);
+      videsASupprimer.push(node);
     }
   }
-  aSupprimer.forEach((n) => n.remove());
+  brASeparer.forEach((n) => n.replaceWith(document.createTextNode('\n')));
+  brASupprimer.forEach((n) => n.remove());
+  videsASupprimer.forEach((n) => n.remove());
+}
+
+/* ============================================================
+   FICHES DE CRÉATURE : à partir de simples lignes de texte tapées
+   dans bestiaire-contenu.html (voir les instructions de ce fichier),
+   on reconstruit ici l'affichage en jolie liste à puces pour la
+   fenêtre détaillée. Personne n'a besoin d'écrire de balises
+   <ul>/<li>/<strong> à la main.
+   ============================================================ */
+
+// Sécurité : neutralise les caractères qui ont un sens spécial en HTML,
+// pour qu'un texte de créature contenant "<" ou "&" ne casse jamais
+// l'affichage.
+function echapperHtml(texte) {
+  return String(texte)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Une ligne par info. Si la ligne commence par un court "Titre :", ce
+// titre est affiché en gras (utile pour "Vitalité : 300"). Sans ":" proche
+// du début, la ligne est affichée telle quelle (utile pour un butin qui
+// n'a pas besoin de libellé, ex: "Croc de Lycanthrope (Rare)") : ça évite
+// aussi de couper en deux une phrase qui contiendrait elle-même un ":"
+// plus loin dans le texte.
+const LONGUEUR_MAX_TITRE = 40;
+function texteEnListe(texteBrut) {
+  const lignes = (texteBrut || '')
+    .replace(/\u00A0/g, ' ')
+    .split('\n')
+    .map((ligne) => ligne.trim())
+    .filter(Boolean);
+
+  if (lignes.length === 0) return '<ul><li>/</li></ul>';
+
+  const items = lignes.map((ligne) => {
+    const sep = ligne.indexOf(':');
+    if (sep > -1 && sep < ligne.length - 1 && sep <= LONGUEUR_MAX_TITRE) {
+      const label = echapperHtml(ligne.slice(0, sep).trim());
+      const reste = echapperHtml(ligne.slice(sep + 1).trim());
+      return `<li><strong>${label} :</strong> ${reste}</li>`;
+    }
+    return `<li>${echapperHtml(ligne)}</li>`;
+  });
+
+  return `<ul>${items.join('')}</ul>`;
+}
+
+// Une ligne vide entre deux blocs de texte = un nouveau paragraphe.
+// Sinon, tout reste dans un seul paragraphe (les retours à la ligne
+// simples ne comptent pas comme un saut de paragraphe).
+function texteEnParagraphes(texteBrut) {
+  const paragraphes = (texteBrut || '')
+    .replace(/\u00A0/g, ' ')
+    .split(/\n\s*\n/)
+    .map((p) => echapperHtml(p.replace(/\n/g, ' ').trim()))
+    .filter(Boolean);
+
+  if (paragraphes.length === 0) return '';
+  return paragraphes.map((p) => `<p>${p}</p>`).join('');
 }
 
 /* Le bestiaire peut être collé plusieurs fois sur la même page (un sujet
@@ -100,13 +173,15 @@ function initInstance(instance) {
 
     imgContainer.addEventListener('click', () => {
       modalImg.src = card.querySelector('.creature-img').src;
-      modalTitle.textContent = card.querySelector('.creature-name').textContent;
+      modalTitle.textContent = card.querySelector('.creature-name').textContent.trim();
 
-      modalFamily.textContent = card.querySelector('.data-family').textContent;
-      modalDesc.innerHTML = card.querySelector('.data-desc').innerHTML;
-      modalStats.innerHTML = card.querySelector('.data-stats').innerHTML;
-      modalAbilities.innerHTML = card.querySelector('.data-abilities').innerHTML;
-      modalLoot.innerHTML = card.querySelector('.data-loot').innerHTML;
+      // Chaque champ de la fiche est du texte brut simple (une info par
+      // ligne) — c'est ici qu'on le transforme en jolie mise en page.
+      modalFamily.textContent = card.querySelector('.data-family').textContent.trim();
+      modalDesc.innerHTML = texteEnParagraphes(card.querySelector('.data-desc').textContent);
+      modalStats.innerHTML = texteEnListe(card.querySelector('.data-stats').textContent);
+      modalAbilities.innerHTML = texteEnListe(card.querySelector('.data-abilities').textContent);
+      modalLoot.innerHTML = texteEnListe(card.querySelector('.data-loot').textContent);
 
       modal.style.display = 'flex';
     });
