@@ -132,6 +132,27 @@ function texteEnParagraphes(texteBrut) {
   return paragraphes.map((p) => `<p>${p}</p>`).join('');
 }
 
+// Petit éclat + onde de choc au point exact cliqué sur une carte (voir
+// .bestiaire-impact dans le CSS pour l'animation). L'élément se supprime
+// tout seul une fois joué.
+function creerEffetImpact(card, event) {
+  const rect = card.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  const impact = document.createElement('div');
+  impact.className = 'bestiaire-impact';
+  impact.style.left = x + 'px';
+  impact.style.top = y + 'px';
+  card.appendChild(impact);
+
+  const nettoyer = () => impact.remove();
+  impact.addEventListener('animationend', nettoyer);
+  // Filet de sécurité si l'événement animationend ne se déclenche pas
+  // (onglet en arrière-plan, etc.).
+  setTimeout(nettoyer, 600);
+}
+
 /* Le bestiaire peut être collé plusieurs fois sur la même page (un sujet
    avec plusieurs messages contenant chacun le bestiaire). Comme le script
    est chargé une seule fois pour toute la page (panneau JS de Forumactif),
@@ -201,19 +222,35 @@ function initInstance(instance) {
   cards.forEach(card => {
     const imgContainer = card.querySelector('.img-container');
 
-    imgContainer.addEventListener('click', () => {
-      modalImg.src = card.querySelector('.creature-img').src;
-      modalTitle.textContent = card.querySelector('.creature-name').textContent.trim();
+    // Lueur "torche" qui suit la souris sur l'illustration (voir
+    // .img-container::after dans le CSS, qui lit ces deux variables).
+    imgContainer.addEventListener('mousemove', (e) => {
+      const rect = imgContainer.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      imgContainer.style.setProperty('--mx', x + '%');
+      imgContainer.style.setProperty('--my', y + '%');
+    });
 
-      // Chaque champ de la fiche est du texte brut simple (une info par
-      // ligne) — c'est ici qu'on le transforme en jolie mise en page.
-      modalFamily.textContent = card.querySelector('.data-family').textContent.trim();
-      modalDesc.innerHTML = texteEnParagraphes(card.querySelector('.data-desc').textContent);
-      modalStats.innerHTML = texteEnListe(card.querySelector('.data-stats').textContent, true);
-      modalAbilities.innerHTML = texteEnListe(card.querySelector('.data-abilities').textContent);
-      modalLoot.innerHTML = texteEnListe(card.querySelector('.data-loot').textContent);
+    imgContainer.addEventListener('click', (e) => {
+      creerEffetImpact(card, e);
 
-      modal.style.display = 'flex';
+      // Petit délai pour laisser le temps de voir l'éclat avant que la
+      // fenêtre ne recouvre la carte.
+      setTimeout(() => {
+        modalImg.src = card.querySelector('.creature-img').src;
+        modalTitle.textContent = card.querySelector('.creature-name').textContent.trim();
+
+        // Chaque champ de la fiche est du texte brut simple (une info par
+        // ligne) — c'est ici qu'on le transforme en jolie mise en page.
+        modalFamily.textContent = card.querySelector('.data-family').textContent.trim();
+        modalDesc.innerHTML = texteEnParagraphes(card.querySelector('.data-desc').textContent);
+        modalStats.innerHTML = texteEnListe(card.querySelector('.data-stats').textContent, true);
+        modalAbilities.innerHTML = texteEnListe(card.querySelector('.data-abilities').textContent);
+        modalLoot.innerHTML = texteEnListe(card.querySelector('.data-loot').textContent);
+
+        modal.style.display = 'flex';
+      }, 180);
     });
   });
 
