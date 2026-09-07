@@ -193,6 +193,17 @@
   display: flex; /* évite qu'un espace/retour à la ligne collé autour de
                      l'image par l'éditeur du forum ne pousse l'image */
 }
+/* Ton forum entoure automatiquement l'image collée d'un <a> (lien vers
+   l'image en taille réelle) que l'éditeur ajoute tout seul. Ce lien reste
+   par défaut à la taille de l'image (300px) au lieu de remplir la carte :
+   comme c'est LUI le cadre réel de l'image, celle-ci se retrouvait bloquée
+   à 300px de large elle aussi, avec un vide sur le reste de la carte à
+   côté. On force ce lien à prendre toute la largeur disponible pour que
+   l'image (qui, elle, est déjà en width:100%) puisse enfin s'étirer. */
+.img-container > a {
+  display: block;
+  width: 100%;
+}
 .creature-img {
   width: 100%;
   /* Les illustrations de ce forum sont au format 300x450 (portrait, ratio
