@@ -194,11 +194,13 @@
                      l'image par l'éditeur du forum ne pousse l'image */
 }
 .creature-img {
-  width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
-  /* La plupart des illustrations sont des portraits "en pied" avec le visage
-     tout en haut : object-position par défaut (centre) coupait souvent la
-     tête. "top" cadre plutôt depuis le haut de l'image, quitte à rogner un
-     peu plus le bas, qui est généralement moins important. */
+  width: 100%;
+  /* Les illustrations de ce forum sont au format 300x450 (portrait, ratio
+     2:3) : on cadre les vignettes sur ce même ratio pour afficher l'image
+     en entier, au lieu du carré (1:1) qui en rognait une bonne partie. */
+  aspect-ratio: 2 / 3; object-fit: cover;
+  /* Filet de sécurité si une image ne fait pas exactement 300x450 : cadre
+     depuis le haut plutôt que le centre, pour ne pas couper la tête. */
   object-position: center top;
   transition: transform 0.4s; filter: grayscale(30%) contrast(1.1); display: block;
 }
@@ -301,10 +303,12 @@
 }
 .close-btn:hover { color: var(--accent-red); }
 
-/* IMAGE : un peu plus large pour mieux profiter de l'illustration */
+/* IMAGE : largeur calée sur le ratio 2:3 des illustrations (300x450) pour
+   une hauteur de fenêtre de 500px, afin que l'image s'affiche en entier au
+   lieu d'être rognée par un cadre trop étroit. */
 .modal-left {
-  flex: 0 0 38%;
-  max-width: 280px;
+  flex: 0 0 333px;
+  max-width: 333px;
   overflow: hidden; /* contient le léger zoom continu de l'image ci-dessous */
   border-radius: 4px;
   display: flex; /* même raison que .img-container : neutralise les
