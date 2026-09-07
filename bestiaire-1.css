@@ -129,11 +129,12 @@
 }
 
 /* Halo au survol : en plus du léger soulèvement déjà présent, une lueur
-   dorée diffuse apparaît autour de la carte. */
+   rouge diffuse apparaît autour de la carte (couleur reprise du thème de
+   ce forum, --accent-red, à la place du doré utilisé sur l'autre forum). */
 .creature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1), 0 0 26px rgba(194, 160, 87, 0.3);
-  border-color: var(--accent-gold);
+  box-shadow: 0 5px 15px rgba(143, 45, 45, 0.15), 0 0 26px rgba(143, 45, 45, 0.4);
+  border-color: var(--accent-red);
 }
 
 /* Particules discrètes : quelques points dorés qui dérivent doucement en
