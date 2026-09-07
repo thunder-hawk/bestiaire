@@ -115,14 +115,74 @@
   .creatures-grid { grid-template-columns: repeat(1, 1fr); }
 }
 .creature-card {
+  position: relative;
+  overflow: hidden; /* contient l'effet de brillance et les particules dans
+                        les coins arrondis de la carte (le halo ci-dessous
+                        reste visible : overflow ne rogne pas l'ombre propre
+                        de la carte elle-même, seulement son contenu) */
   background: var(--bg-card); border: 1px solid var(--border-color);
   padding: 8px; text-align: center; border-radius: 4px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
+/* Halo au survol : en plus du léger soulèvement déjà présent, une lueur
+   dorée diffuse apparaît autour de la carte. */
 .creature-card:hover {
-  transform: translateY(-5px); box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(194, 160, 87, 0.1), 0 0 26px rgba(194, 160, 87, 0.3);
   border-color: var(--accent-gold);
+}
+
+/* Particules discrètes : quelques points dorés qui dérivent doucement en
+   permanence sur la carte, façon poussière/braises en suspension. Un seul
+   calque en pseudo-élément (pas de balise supplémentaire à gérer dans le
+   contenu) : 4 petits points positionnés puis animés légèrement. */
+.creature-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.6px 1.6px at 20% 28%, rgba(194, 160, 87, 0.65), transparent 60%),
+    radial-gradient(1.2px 1.2px at 72% 62%, rgba(194, 160, 87, 0.5), transparent 60%),
+    radial-gradient(1.6px 1.6px at 46% 82%, rgba(194, 160, 87, 0.45), transparent 60%),
+    radial-gradient(1.2px 1.2px at 85% 22%, rgba(194, 160, 87, 0.5), transparent 60%);
+  background-repeat: no-repeat;
+  animation: bestiaire-particules 9s ease-in-out infinite;
+}
+@keyframes bestiaire-particules {
+  0%, 100% {
+    background-position: 20% 28%, 72% 62%, 46% 82%, 85% 22%;
+    opacity: 0.55;
+  }
+  50% {
+    background-position: 24% 20%, 68% 70%, 50% 76%, 81% 28%;
+    opacity: 0.9;
+  }
+}
+
+/* Brillance au survol : un reflet lumineux diagonal traverse la carte,
+   façon carte à collectionner. */
+.creature-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.28) 50%, rgba(255, 255, 255, 0.16) 55%, transparent 100%);
+  transform: skewX(-20deg);
+  transition: left 0.75s ease;
+}
+.creature-card:hover::after {
+  left: 130%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .creature-card::before { animation: none; }
+  .creature-card::after { transition: none; display: none; }
 }
 .img-container {
   position: relative; cursor: pointer; overflow: hidden;
