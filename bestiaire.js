@@ -59,14 +59,36 @@ function echapperHtml(texte) {
     .replace(/>/g, '&gt;');
 }
 
+// Enleve les accents et met en minuscules, pour reconnaitre "Vitalite",
+// "vitalite", "VITALITE"... comme la meme chose.
+function normaliser(texte) {
+  return String(texte)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+// Les 3 statistiques de base ressortent chacune dans leur propre couleur
+// (voir bestiaire-style.css) au lieu du dore generique des autres titres.
+// Reconnu automatiquement a partir du libelle tape dans data-stats, sans
+// rien a faire de special cote contenu.
+const COULEURS_STATS = [
+  { test: (n) => n.startsWith('vitalite'), classe: 'stat-vitalite' },
+  { test: (n) => n.startsWith('vitesse'), classe: 'stat-vitesse' },
+  { test: (n) => n.startsWith('degat'), classe: 'stat-degats' },
+];
+
 // Une ligne par info. Si la ligne commence par un court "Titre :", ce
-// titre est affiché en gras (utile pour "Vitalité : 300"). Sans ":" proche
-// du début, la ligne est affichée telle quelle (utile pour un butin qui
-// n'a pas besoin de libellé, ex: "Croc de Lycanthrope (Rare)") : ça évite
-// aussi de couper en deux une phrase qui contiendrait elle-même un ":"
+// titre est affiche en gras (utile pour "Vitalite : 300"). Sans ":" proche
+// du debut, la ligne est affichee telle quelle (utile pour un butin qui
+// n'a pas besoin de libelle, ex: "Croc de Lycanthrope (Rare)") : ca evite
+// aussi de couper en deux une phrase qui contiendrait elle-meme un ":"
 // plus loin dans le texte.
+// `colorerStats` n'est utilise que pour le bloc Statistiques (voir plus
+// bas) : il active la coloration Vitalite/Vitesse/Degats ci-dessus.
 const LONGUEUR_MAX_TITRE = 40;
-function texteEnListe(texteBrut) {
+function texteEnListe(texteBrut, colorerStats) {
   const lignes = (texteBrut || '')
     .replace(/\u00A0/g, ' ')
     .split('\n')
@@ -78,9 +100,17 @@ function texteEnListe(texteBrut) {
   const items = lignes.map((ligne) => {
     const sep = ligne.indexOf(':');
     if (sep > -1 && sep < ligne.length - 1 && sep <= LONGUEUR_MAX_TITRE) {
-      const label = echapperHtml(ligne.slice(0, sep).trim());
+      const labelBrut = ligne.slice(0, sep).trim();
+      const label = echapperHtml(labelBrut);
       const reste = echapperHtml(ligne.slice(sep + 1).trim());
-      return `<li><strong>${label} :</strong> ${reste}</li>`;
+
+      let attributClasse = '';
+      if (colorerStats) {
+        const match = COULEURS_STATS.find((c) => c.test(normaliser(labelBrut)));
+        if (match) attributClasse = ` class="${match.classe}"`;
+      }
+
+      return `<li><strong${attributClasse}>${label} :</strong> ${reste}</li>`;
     }
     return `<li>${echapperHtml(ligne)}</li>`;
   });
@@ -179,7 +209,7 @@ function initInstance(instance) {
       // ligne) — c'est ici qu'on le transforme en jolie mise en page.
       modalFamily.textContent = card.querySelector('.data-family').textContent.trim();
       modalDesc.innerHTML = texteEnParagraphes(card.querySelector('.data-desc').textContent);
-      modalStats.innerHTML = texteEnListe(card.querySelector('.data-stats').textContent);
+      modalStats.innerHTML = texteEnListe(card.querySelector('.data-stats').textContent, true);
       modalAbilities.innerHTML = texteEnListe(card.querySelector('.data-abilities').textContent);
       modalLoot.innerHTML = texteEnListe(card.querySelector('.data-loot').textContent);
 
