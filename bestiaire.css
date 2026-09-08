@@ -224,9 +224,16 @@
   top: 0; left: 0; width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
   justify-content: center; align-items: center; padding: 16px;
-  opacity: 0; animation: fadeIn 0.3s forwards;
+  /* IMPORTANT : l'état "visible" (opacity 1) est l'état de base, et
+     l'animation ne sert QU'À l'effet d'apparition. Avant, c'était l'inverse
+     (opacity 0 + animation qui amenait à 1) : si le navigateur ne relançait
+     pas l'animation au moment où la fenêtre passe de display:none à
+     display:flex — ce que Firefox ne fait pas toujours pour les éléments
+     enfants — la fenêtre restait totalement transparente et on avait
+     l'impression que le clic sur une carte ne faisait rien. */
+  opacity: 1; animation: fadeIn 0.3s ease;
 }
-@keyframes fadeIn { to { opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .modal-content {
   background-color: var(--bg-grimoire); border: 2px solid var(--accent-gold);
@@ -246,10 +253,13 @@
   scrollbar-width: none;
 
   /* Ouverture "façon livre qui s'ouvre" : léger zoom + fondu, avec un
-     petit rebond à l'arrivée (au lieu du simple fondu du fond derrière). */
-  opacity: 0;
-  transform: scale(0.85);
-  animation: bestiaire-modal-ouverture 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+     petit rebond à l'arrivée (au lieu du simple fondu du fond derrière).
+     Même règle que pour .modal ci-dessus : l'état de base est l'état FINAL
+     (visible, taille normale), l'animation ne fait que jouer l'apparition.
+     Si elle ne se joue pas, la fiche s'affiche quand même. */
+  opacity: 1;
+  transform: none;
+  animation: bestiaire-modal-ouverture 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes bestiaire-modal-ouverture {
   from { opacity: 0; transform: scale(0.85); }
