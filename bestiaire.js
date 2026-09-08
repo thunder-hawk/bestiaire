@@ -200,8 +200,18 @@ function initInstance(instance) {
 
   cards.forEach(card => {
     const imgContainer = card.querySelector('.img-container');
+    // Sécurité : si une carte a été mal recopiée et n'a pas de bloc image,
+    // on l'ignore au lieu de faire planter l'initialisation de TOUTES les
+    // cartes suivantes (avant, une seule carte incomplète suffisait à ce
+    // que plus aucune fiche ne s'ouvre).
+    if (!imgContainer) return;
 
-    imgContainer.addEventListener('click', () => {
+    imgContainer.addEventListener('click', (e) => {
+      // L'éditeur du forum entoure automatiquement l'image d'un lien vers
+      // l'image en taille réelle. Sans ça, selon le navigateur, le clic
+      // peut suivre ce lien au lieu (ou en plus) d'ouvrir la fiche.
+      e.preventDefault();
+
       modalImg.src = card.querySelector('.creature-img').src;
       modalTitle.textContent = card.querySelector('.creature-name').textContent.trim();
 
