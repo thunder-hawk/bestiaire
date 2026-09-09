@@ -234,17 +234,19 @@ function initInstance(instance) {
   });
 }
 
-/* La marque data-bestiaire-initialise évite d'attacher deux fois les mêmes
-   écouteurs de clic sur une instance déjà initialisée (utile puisqu'on
-   appelle maintenant initBestiaire() à plusieurs moments différents par
-   sécurité, voir plus bas). */
+/* NOTE : pas de protection "anti-double-appel" ici volontairement. On a
+   essayé un système qui marquait une instance comme "déjà initialisée"
+   pour éviter d'attacher les écouteurs deux fois, mais ça créait un risque
+   pire : si le tout premier appel échouait à mi-chemin pour une raison
+   quelconque, l'instance restait marquée "faite" pour toujours et plus
+   aucun appel suivant (même manuel) ne pouvait la réparer. Ici, rappeler
+   initInstance() plusieurs fois sur la même instance ne fait AUCUN dégât
+   (au pire la fiche se remplit deux fois avec les mêmes infos, invisible
+   pour l'utilisateur) — donc autant rester simple et laisser chaque
+   tentative avoir une vraie chance de réussir. */
 function initBestiaire() {
   const instances = document.querySelectorAll('.bestiaire-instance');
-  instances.forEach((instance) => {
-    if (instance.dataset.bestiaireInitialise === 'true') return;
-    instance.dataset.bestiaireInitialise = 'true';
-    initInstance(instance);
-  });
+  instances.forEach(initInstance);
 }
 
 /* Lance l'initialisation tout de suite si la page est déjà chargée
@@ -259,9 +261,7 @@ function initBestiaire() {
    interaction (clic, recherche, filtres). On rattrape donc aussi le
    coup avec l'événement 'load' (page entièrement chargée, images
    comprises), qui se déclenche forcément après coup si jamais le
-   premier essai a été manqué. Comme initBestiaire() ignore maintenant
-   les instances déjà initialisées, l'appeler deux fois ne pose aucun
-   problème. */
+   premier essai a été manqué. */
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initBestiaire);
 } else {
