@@ -234,16 +234,37 @@ function initInstance(instance) {
   });
 }
 
+/* La marque data-bestiaire-initialise évite d'attacher deux fois les mêmes
+   écouteurs de clic sur une instance déjà initialisée (utile puisqu'on
+   appelle maintenant initBestiaire() à plusieurs moments différents par
+   sécurité, voir plus bas). */
 function initBestiaire() {
   const instances = document.querySelectorAll('.bestiaire-instance');
-  instances.forEach(initInstance);
+  instances.forEach((instance) => {
+    if (instance.dataset.bestiaireInitialise === 'true') return;
+    instance.dataset.bestiaireInitialise = 'true';
+    initInstance(instance);
+  });
 }
 
 /* Lance l'initialisation tout de suite si la page est déjà chargée
    (cas d'un script injecté dynamiquement, après coup), sinon on
-   attend que le DOM soit prêt comme d'habitude. */
+   attend que le DOM soit prêt comme d'habitude.
+   Filet de sécurité en plus : sur Forumactif, le script peut parfois
+   être exécuté à un moment où document.readyState vaut encore 'loading'
+   alors que l'événement DOMContentLoaded s'est déjà produit entre-temps
+   (selon le moment exact où le panneau JS injecte le script) — dans ce
+   cas l'écouteur ci-dessous attend un événement qui ne se reproduira
+   jamais, et le bestiaire reste visuellement affiché mais sans aucune
+   interaction (clic, recherche, filtres). On rattrape donc aussi le
+   coup avec l'événement 'load' (page entièrement chargée, images
+   comprises), qui se déclenche forcément après coup si jamais le
+   premier essai a été manqué. Comme initBestiaire() ignore maintenant
+   les instances déjà initialisées, l'appeler deux fois ne pose aucun
+   problème. */
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initBestiaire);
 } else {
   initBestiaire();
 }
+window.addEventListener('load', initBestiaire);
