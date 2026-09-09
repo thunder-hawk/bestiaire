@@ -31,7 +31,15 @@ function nettoyerParasitesEditeur(racine) {
     } else if (
       node.nodeType === Node.TEXT_NODE &&
       node.textContent.length > 0 &&
-      /^[\s ]*$/.test(node.textContent)
+      // Volontairement [^\S\n] et pas \s tout court : \s inclut le retour
+      // à la ligne (\n), or cette fonction peut être relancée plusieurs
+      // fois par sécurité (voir plus bas dans le fichier). Si elle
+      // reconnaissait \n comme un "espace vide parasite", une deuxième
+      // passe supprimerait les \n qu'elle vient elle-même de créer juste
+      // au-dessus à partir des <br> — recollant "Vitalité : 800" et
+      // "Vitesse : 500" en "Vitalité : 800Vitesse : 500". Ici on ne vise
+      // que les vrais parasites (espace normal, nbsp), jamais un \n.
+      /^[^\S\n]*$/.test(node.textContent)
     ) {
       videsASupprimer.push(node);
     }
