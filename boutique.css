@@ -104,7 +104,7 @@
   border-radius: 3px;
   color: var(--text-main);
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1.02rem;
 }
 .shop-search-bar input::placeholder { color: var(--text-muted); }
 .shop-search-bar input:focus {
@@ -122,7 +122,7 @@
   border-radius: 3px;
   color: var(--text-main);
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.97rem;
   cursor: pointer;
 }
 
@@ -140,7 +140,7 @@
   border-radius: 3px;
   color: var(--text-muted);
   font-family: var(--font-title);
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   cursor: pointer;
@@ -232,12 +232,12 @@
 .item-name {
   font-family: var(--font-title);
   color: var(--accent-gold);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.25;
   margin-bottom: 3px !important;
 }
 .item-sub {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -250,7 +250,7 @@
   gap: 5px;
   padding: 3px 9px;
   border-radius: 20px;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 600;
   border: 1px solid currentColor;
 }
@@ -271,7 +271,7 @@
   background: var(--accent-red);
   color: #f4e9d0;
   font-family: var(--font-title);
-  font-size: 0.76rem;
+  font-size: 0.82rem;
   font-weight: 700;
   padding: 3px 10px 3px 8px;
   border-radius: 3px 0 0 3px;
@@ -350,7 +350,7 @@
   max-height: none !important;
   font-family: var(--font-title, 'Cinzel', serif) !important;
   color: var(--accent-gold, #c2a057) !important;
-  font-size: 0.85rem !important;
+  font-size: 0.94rem !important;
   margin: 0 0 6px 0 !important;
   padding: 0 0 6px 0 !important;
   border: none !important;
@@ -367,7 +367,7 @@
   max-height: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  font-size: 0.88rem !important;
+  font-size: 0.96rem !important;
   font-style: italic !important;
   line-height: 1.4 !important;
   color: var(--text-main, #d3c4a9) !important;
