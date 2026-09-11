@@ -312,6 +312,12 @@
   width: auto !important;
   max-width: 260px !important;
   min-width: 0 !important;
+  /* Idem que pour le fond : sans ça, une règle générale du thème du
+     forum peut imposer une hauteur fixe (ex: 50px) à ce div, coupant
+     les descriptions un peu longues sur plusieurs lignes. */
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
   margin: 0 !important;
   padding: 12px 14px !important;
   white-space: normal !important;
@@ -340,6 +346,8 @@
 .item-tooltip-title {
   display: block !important;
   width: auto !important;
+  height: auto !important;
+  max-height: none !important;
   font-family: var(--font-title, 'Cinzel', serif) !important;
   color: var(--accent-gold, #c2a057) !important;
   font-size: 0.85rem !important;
@@ -355,6 +363,8 @@
 .item-tooltip-desc {
   display: block !important;
   width: auto !important;
+  height: auto !important;
+  max-height: none !important;
   margin: 0 !important;
   padding: 0 !important;
   font-size: 0.88rem !important;
