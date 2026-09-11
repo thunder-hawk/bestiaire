@@ -257,6 +257,11 @@
 .item-bonus.stat-pv { color: var(--stat-pv); }
 .item-bonus.stat-dps { color: var(--stat-dps); }
 
+/* Filet de sécurité : le texte de description est déjà caché par
+   l'attribut HTML "hidden", mais si jamais l'éditeur du forum le
+   supprime en sauvegardant, cette règle le cache quand même. */
+.item-desc { display: none !important; }
+
 /* Étiquette de prix : accrochée en haut à droite de la carte entière
    maintenant que l'icône est petite (avant elle était sur le coin de
    la grande image). */
@@ -300,31 +305,48 @@
    bestiaire. Comme il vit hors de .shop-container, il a besoin de ses
    propres règles de base (box-sizing, etc.) au lieu d'hériter du reset. */
 .item-tooltip {
-  box-sizing: border-box;
+  box-sizing: border-box !important;
   display: none;
-  position: fixed;
-  z-index: 2000;
-  max-width: 260px;
-  padding: 12px 14px;
-  background: var(--bg-bois, #1c140f);
-  border: 1px solid var(--accent-gold, #c2a057);
-  border-radius: 5px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-  font-family: var(--font-body, 'Crimson Text', serif);
-  color: var(--text-main, #d3c4a9);
-  pointer-events: none;
+  position: fixed !important;
+  z-index: 2000 !important;
+  max-width: 260px !important;
+  margin: 0 !important;
+  padding: 12px 14px !important;
+  /* background ET background-color, tous les deux en !important : ce
+     bloc vit hors de .shop-container (ajouté à <body> par le script),
+     donc rien ne le protège des styles généraux du forum. Sur le forum
+     de l'utilisateur, une règle plus générale écrasait le fond et le
+     rendait transparent — d'où le texte illisible, mélangé avec le
+     contenu affiché derrière. Opacity forcée à 1 pour la même raison,
+     au cas où une règle du thème réduirait l'opacité d'un div générique. */
+  background: var(--bg-bois, #1c140f) !important;
+  background-color: var(--bg-bois, #1c140f) !important;
+  opacity: 1 !important;
+  border: 1px solid var(--accent-gold, #c2a057) !important;
+  border-radius: 5px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.85) !important;
+  font-family: var(--font-body, 'Crimson Text', serif) !important;
+  color: var(--text-main, #d3c4a9) !important;
+  line-height: 1.4 !important;
+  pointer-events: none !important;
 }
-.item-tooltip.visible { display: block; }
+.item-tooltip.visible { display: block !important; }
 .item-tooltip-title {
-  font-family: var(--font-title, 'Cinzel', serif);
-  color: var(--accent-gold, #c2a057);
-  font-size: 0.85rem;
-  margin-bottom: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border-color, #3d2b1f);
+  font-family: var(--font-title, 'Cinzel', serif) !important;
+  color: var(--accent-gold, #c2a057) !important;
+  font-size: 0.85rem !important;
+  margin: 0 0 6px 0 !important;
+  padding: 0 0 6px 0 !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-color, #3d2b1f) !important;
+  background: transparent !important;
 }
 .item-tooltip-desc {
-  font-size: 0.88rem;
-  font-style: italic;
-  line-height: 1.4;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0.88rem !important;
+  font-style: italic !important;
+  line-height: 1.4 !important;
+  color: var(--text-main, #d3c4a9) !important;
+  background: transparent !important;
 }
