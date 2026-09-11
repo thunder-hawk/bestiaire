@@ -187,9 +187,11 @@
   border: 1px solid var(--border-color);
   border-radius: 4px;
   position: relative;
+  cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.item-card:hover {
+.item-card:hover,
+.item-card.ouverte {
   transform: translateY(-3px);
   border-color: var(--accent-red-clair);
   box-shadow: 0 5px 14px rgba(0,0,0,0.5), 0 0 18px rgba(143, 45, 45, 0.35);
@@ -287,4 +289,42 @@
 .item-price-tag .eclat-icone {
   color: var(--accent-gold);
   font-size: 0.85em;
+}
+
+/* ---------- Infobulle de description (au clic sur une carte) ----------
+   Élément unique, ajouté directement à <body> par le script (pas à
+   l'intérieur de .shop-container) pour ne jamais être coupé par un
+   "overflow: hidden" d'un parent, et positionné en "fixed" à partir des
+   coordonnées réelles de la carte cliquée — ça évite tous les soucis de
+   contexte de positionnement qu'on a pu croiser avec la fenêtre du
+   bestiaire. Comme il vit hors de .shop-container, il a besoin de ses
+   propres règles de base (box-sizing, etc.) au lieu d'hériter du reset. */
+.item-tooltip {
+  box-sizing: border-box;
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  max-width: 260px;
+  padding: 12px 14px;
+  background: var(--bg-bois, #1c140f);
+  border: 1px solid var(--accent-gold, #c2a057);
+  border-radius: 5px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+  font-family: var(--font-body, 'Crimson Text', serif);
+  color: var(--text-main, #d3c4a9);
+  pointer-events: none;
+}
+.item-tooltip.visible { display: block; }
+.item-tooltip-title {
+  font-family: var(--font-title, 'Cinzel', serif);
+  color: var(--accent-gold, #c2a057);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color, #3d2b1f);
+}
+.item-tooltip-desc {
+  font-size: 0.88rem;
+  font-style: italic;
+  line-height: 1.4;
 }
