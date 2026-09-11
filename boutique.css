@@ -1,0 +1,271 @@
+/* ==========================================================
+   BOUTIQUE — pathofdawn.forumactif.com
+   Même famille de couleurs que le bestiaire (rouge/sombre, mêmes
+   polices), mais une ambiance "comptoir de marchand" plutôt que
+   "grimoire" : bois vieilli, étiquettes de prix accrochées, sceau
+   de cire pour les catégories — volontairement différent du
+   bestiaire pour qu'on distingue tout de suite les deux univers.
+   ========================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --bg-body: #09090a;
+  --bg-bois: #1c140f;
+  --bg-bois-clair: #241a13;
+  --bg-etal: #2a1f18;
+  --text-main: #d3c4a9;
+  --text-muted: #8c7d6b;
+  --accent-gold: #c2a057;
+  --accent-red: #8f2d2d;
+  --accent-red-clair: #b23c3c;
+  --border-color: #3d2b1f;
+  --stat-pv: #8aab74;
+  --stat-dps: #b1524f;
+  --font-title: 'Cinzel', serif;
+  --font-body: 'Crimson Text', serif;
+}
+
+/* Comme pour le bestiaire : tout est préfixé par .shop-container pour ne
+   jamais toucher au reste de la page du forum (le fichier CSS est chargé
+   sur toute la page, pas seulement sur ce bloc). */
+.shop-container,
+.shop-container * {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+  float: none !important;
+}
+
+.shop-container br { display: none !important; }
+
+.shop-container {
+  display: block !important;
+  width: 100% !important;
+  max-width: 780px !important;
+  margin: 20px auto !important;
+  background:
+    repeating-linear-gradient(180deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 2px, transparent 2px, transparent 40px),
+    linear-gradient(180deg, var(--bg-bois) 0%, #150f0b 100%);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-size: 1rem;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 60px rgba(0,0,0,0.6);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---------- En-tête : enseigne suspendue ---------- */
+.shop-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  position: relative;
+}
+.shop-header::after {
+  content: '';
+  display: block;
+  width: 70%;
+  height: 2px;
+  margin: 14px auto 0;
+  background: linear-gradient(90deg, transparent, var(--accent-red-clair), transparent);
+}
+.shop-header h1 {
+  font-family: var(--font-title);
+  color: var(--accent-gold);
+  font-size: 1.5rem;
+  letter-spacing: 1.5px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+.shop-header p {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+/* ---------- Barre de recherche + tri ---------- */
+.shop-controls {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+.shop-search-bar { flex: 1 1 220px; }
+.shop-search-bar input {
+  width: 100%;
+  padding: 9px 14px;
+  background: var(--bg-bois-clair);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+.shop-search-bar input::placeholder { color: var(--text-muted); }
+.shop-search-bar input:focus {
+  outline: none;
+  border-color: var(--accent-red-clair);
+}
+
+.shop-sort {
+  flex: 0 0 auto;
+}
+.shop-sort select {
+  padding: 9px 12px;
+  background: var(--bg-bois-clair);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ---------- Filtres : petites étiquettes de bois ---------- */
+.shop-filters {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.shop-filter-btn {
+  padding: 6px 14px;
+  background: var(--bg-etal);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-family: var(--font-title);
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.shop-filter-btn:hover {
+  color: var(--text-main);
+  border-color: var(--accent-red-clair);
+}
+.shop-filter-btn.active {
+  background: var(--accent-red);
+  border-color: var(--accent-red-clair);
+  color: #f0e6d2;
+}
+
+/* ---------- Grille d'objets ---------- */
+.items-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (max-width: 560px) {
+  .items-grid { grid-template-columns: 1fr !important; }
+}
+
+.shop-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 30px 0;
+}
+
+/* ---------- Carte objet ---------- */
+.item-card {
+  background: var(--bg-etal);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.item-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-red-clair);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 22px rgba(143, 45, 45, 0.35);
+}
+
+.item-image-wrap {
+  position: relative !important;
+  height: 150px;
+  background:
+    radial-gradient(ellipse at center, rgba(194,160,87,0.08), transparent 70%),
+    var(--bg-bois-clair);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden !important;
+}
+.item-image-wrap img {
+  max-width: 88%;
+  max-height: 88%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+}
+
+/* Étiquette de prix, façon fanion accroché au coin de l'image. */
+.item-price-tag {
+  position: absolute !important;
+  top: 8px; right: -2px;
+  background: var(--accent-red);
+  color: #f4e9d0;
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px 4px 10px;
+  border-radius: 3px 0 0 3px;
+  box-shadow: -2px 2px 6px rgba(0,0,0,0.5);
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+}
+.item-price-tag::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 0;
+  border-style: solid;
+  border-width: 0 6px 11px 0;
+  border-color: transparent transparent var(--accent-red) transparent;
+  transform: rotate(180deg) translateY(1px);
+}
+.item-price-tag .eclat-icone {
+  color: var(--accent-gold);
+  font-size: 0.85em;
+}
+
+.item-body {
+  padding: 12px 14px 14px;
+}
+.item-name {
+  font-family: var(--font-title);
+  color: var(--accent-gold);
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin-bottom: 4px !important;
+}
+.item-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px !important;
+}
+
+.item-bonus {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid currentColor;
+}
+.item-bonus.stat-pv { color: var(--stat-pv); }
+.item-bonus.stat-dps { color: var(--stat-dps); }
