@@ -84,8 +84,21 @@ function initShopInstance(instance) {
       const correspondFiltre = currentFilter === 'all' || categories.includes(currentFilter);
       const visible = correspondRecherche && correspondFiltre;
 
-      card.style.display = visible ? '' : 'none';
-      if (visible) visibles += 1;
+      /* .item-card force "display: flex !important" en CSS (nécessaire
+         pour la mise en page). Un style inline classique ne peut jamais
+         gagner contre un !important de la feuille de style, donc
+         "card.style.display = 'none'" tout seul ne cachait jamais
+         vraiment la carte (elle restait affichée malgré l'attribut
+         inline) : c'est ce qui rendait la recherche/le filtre inopérants
+         à l'écran. On force donc nous aussi un !important pour cacher,
+         et on retire simplement la propriété pour réafficher (la règle
+         CSS "!important" reprend alors la main normalement). */
+      if (visible) {
+        card.style.removeProperty('display');
+        visibles += 1;
+      } else {
+        card.style.setProperty('display', 'none', 'important');
+      }
     });
 
     let messageVide = instance.querySelector('.shop-empty');
