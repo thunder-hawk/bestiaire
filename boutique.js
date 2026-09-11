@@ -226,3 +226,14 @@ if (document.readyState === 'loading') {
   initBoutique();
 }
 window.addEventListener('load', initBoutique);
+
+/* Testé en vrai sur le forum : même avec les 3 tentatives ci-dessus,
+   il arrive que rien ne se déclenche automatiquement (le panneau JS de
+   Forumactif peut injecter le script à un moment où DOMContentLoaded
+   ET load ont déjà eu lieu tous les deux, donc plus aucun des deux
+   évènements ne se reproduira). On ajoute donc deux rappels différés,
+   qui finissent toujours par tomber après coup quoi qu'il arrive.
+   Sans risque grâce au design du dessus (rappeler initBoutique()
+   plusieurs fois ne fait jamais de dégât). */
+setTimeout(initBoutique, 1000);
+setTimeout(initBoutique, 3000);
