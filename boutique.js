@@ -35,6 +35,29 @@ function nettoyerParasitesBoutique(racine) {
   aSupprimer.forEach((n) => n.remove());
 }
 
+function echapperHtmlBoutique(texte) {
+  return String(texte)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* Infobulle de description : un seul élément partagé pour toute la page
+   (même s'il y a plusieurs boutiques dessus), créé une seule fois et
+   réutilisé ensuite. On vérifie qu'il est toujours bien dans la page au
+   cas où — cette fonction peut être appelée plusieurs fois sans jamais
+   créer de doublon. */
+let tooltipBoutiquePartage = null;
+function obtenirTooltipBoutique() {
+  if (tooltipBoutiquePartage && document.body.contains(tooltipBoutiquePartage)) {
+    return tooltipBoutiquePartage;
+  }
+  tooltipBoutiquePartage = document.createElement('div');
+  tooltipBoutiquePartage.className = 'item-tooltip';
+  document.body.appendChild(tooltipBoutiquePartage);
+  return tooltipBoutiquePartage;
+}
+
 function initShopInstance(instance) {
   nettoyerParasitesBoutique(instance);
 
@@ -89,6 +112,80 @@ function initShopInstance(instance) {
     });
     cartesTriees.forEach((card) => grid.appendChild(card));
   }
+
+  /* ---------- Infobulle de description au clic ---------- */
+  const tooltip = obtenirTooltipBoutique();
+  let carteOuverte = null;
+
+  function positionnerTooltip(card) {
+    // Mesure après affichage (display: block) pour avoir la vraie taille
+    // de l'infobulle une fois son contenu posé.
+    const margeEcran = 10;
+    const rectCarte = card.getBoundingClientRect();
+    const rectTooltip = tooltip.getBoundingClientRect();
+
+    let gauche = rectCarte.left;
+    const gaucheMax = window.innerWidth - rectTooltip.width - margeEcran;
+    if (gauche > gaucheMax) gauche = Math.max(margeEcran, gaucheMax);
+
+    let haut = rectCarte.bottom + margeEcran;
+    if (haut + rectTooltip.height > window.innerHeight - margeEcran) {
+      // Pas assez de place en dessous : on l'affiche au-dessus de la carte.
+      haut = rectCarte.top - rectTooltip.height - margeEcran;
+      if (haut < margeEcran) haut = margeEcran;
+    }
+
+    tooltip.style.left = gauche + 'px';
+    tooltip.style.top = haut + 'px';
+  }
+
+  function fermerTooltip() {
+    tooltip.classList.remove('visible');
+    if (carteOuverte) carteOuverte.classList.remove('ouverte');
+    carteOuverte = null;
+  }
+
+  function ouvrirTooltip(card) {
+    const descEl = card.querySelector('.item-desc');
+    const desc = descEl ? descEl.textContent.trim() : '';
+    if (!desc) return; // rien à montrer, inutile d'ouvrir une bulle vide
+    const nomEl = card.querySelector('.item-name');
+    const nom = nomEl ? nomEl.textContent.trim() : '';
+
+    tooltip.innerHTML =
+      '<div class="item-tooltip-title">' + echapperHtmlBoutique(nom) + '</div>' +
+      '<div class="item-tooltip-desc">' + echapperHtmlBoutique(desc) + '</div>';
+    tooltip.classList.add('visible');
+    card.classList.add('ouverte');
+    carteOuverte = card;
+    positionnerTooltip(card);
+  }
+
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      if (carteOuverte === card) {
+        fermerTooltip();
+      } else {
+        if (carteOuverte) carteOuverte.classList.remove('ouverte');
+        ouvrirTooltip(card);
+      }
+    });
+  });
+
+  // Clic en dehors de la carte ouverte (et en dehors de la bulle elle-même,
+  // même si elle ignore les clics grâce à pointer-events:none) : on ferme.
+  document.addEventListener('click', (e) => {
+    if (carteOuverte && !carteOuverte.contains(e.target)) {
+      fermerTooltip();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && carteOuverte) fermerTooltip();
+  });
+  // Si la page défile ou que la fenêtre change de taille, on referme
+  // plutôt que de laisser une bulle mal placée.
+  window.addEventListener('scroll', () => { if (carteOuverte) fermerTooltip(); }, true);
+  window.addEventListener('resize', () => { if (carteOuverte) fermerTooltip(); });
 
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
