@@ -306,12 +306,18 @@
    propres règles de base (box-sizing, etc.) au lieu d'hériter du reset. */
 .item-tooltip {
   box-sizing: border-box !important;
-  display: none;
+  display: none !important;
   position: fixed !important;
   z-index: 2000 !important;
+  width: auto !important;
   max-width: 260px !important;
+  min-width: 0 !important;
   margin: 0 !important;
   padding: 12px 14px !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  overflow: hidden !important;
   /* background ET background-color, tous les deux en !important : ce
      bloc vit hors de .shop-container (ajouté à <body> par le script),
      donc rien ne le protège des styles généraux du forum. Sur le forum
@@ -332,6 +338,8 @@
 }
 .item-tooltip.visible { display: block !important; }
 .item-tooltip-title {
+  display: block !important;
+  width: auto !important;
   font-family: var(--font-title, 'Cinzel', serif) !important;
   color: var(--accent-gold, #c2a057) !important;
   font-size: 0.85rem !important;
@@ -340,8 +348,13 @@
   border: none !important;
   border-bottom: 1px solid var(--border-color, #3d2b1f) !important;
   background: transparent !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
 .item-tooltip-desc {
+  display: block !important;
+  width: auto !important;
   margin: 0 !important;
   padding: 0 !important;
   font-size: 0.88rem !important;
@@ -349,4 +362,7 @@
   line-height: 1.4 !important;
   color: var(--text-main, #d3c4a9) !important;
   background: transparent !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
