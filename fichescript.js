@@ -1,8 +1,22 @@
 /* ==========================================================
    FICHE DE PERSONNAGE — système de niveaux (1 à 10)
-   À coller dans le champ personnalisé "campo18" (Stats) du profil,
-   avec le <link> vers fiche-style.css et le <script> vers ce fichier
-   juste à côté (mêmes principes que la boutique : jsDelivr + ?v=).
+
+   Trois façons de coller ce widget (voir fiche-contenu.html) :
+   1. Dans le champ personnalisé "campo18" (Stats) du profil — chaque
+      profil affiche alors SA PROPRE fiche, identifiée via l'URL /u...
+   2. Dans le PREMIER MESSAGE d'un sujet de forum posté par le STAFF
+      pour un joueur (ex. catégorie "Fiches de personnage", un sujet
+      par joueur) : comme c'est le staff qui poste (donc l'auteur du
+      message), on précise le joueur concerné à la main via l'attribut
+      data-joueur="..." sur .fiche-progression — sinon la fiche
+      s'identifierait au staff plutôt qu'au joueur.
+   3. Cas plus rare : sujet posté PAR LE JOUEUR LUI-MÊME (sans
+      data-joueur) — la fiche est alors identifiée via l'auteur du
+      premier message.
+   Ne jamais laisser un membre normal coller du HTML/JS dans un
+   message (risque de sécurité) — voir la note dans fiche-contenu.html.
+   Le script détecte tout seul lequel des trois cas s'applique, voir
+   ficheIdentifierPersonnage() plus bas.
    ========================================================== */
 
 /* ------------------------------------------------------------------
@@ -34,30 +48,91 @@ const FICHE_BONUS_DPS_PAR_NIVEAU = 10;
    Petits utilitaires
    ------------------------------------------------------------------ */
 
-/* Récupère l'identifiant numérique du profil affiché depuis l'URL
-   (".../u1", ".../u42" ...) : c'est ce qui permet au script de savoir
-   automatiquement de quel personnage il s'agit, sans rien à
-   configurer à la main dans le collage HTML de chaque joueur. */
-function ficheIdDepuisUrl() {
-  const m = location.pathname.match(/\/u(\d+)(?:[/?#]|$)/);
-  return m ? m[1] : null;
+/* Détermine à QUEL PERSONNAGE appartient cette fiche, et son pseudo
+   quand on peut l'avoir tout de suite — TROIS façons possibles, dans
+   cet ordre de priorité :
+   1. Un attribut "data-joueur" posé à la main sur le bloc
+      .fiche-progression (voir fiche-contenu.html) : le staff y colle
+      l'id ou l'URL du profil du joueur concerné au moment de créer
+      son sujet. C'est la méthode à utiliser quand c'est le STAFF qui
+      poste le sujet (donc qui en est l'auteur) — sans ça, la fiche
+      s'identifierait au staff plutôt qu'au joueur.
+   2. Sur une page de profil (".../u42"), comme au départ : l'id vient
+      de l'URL, le pseudo du titre de la page ("Voir un profil - X").
+   3. Sur un sujet de forum, à défaut des deux précédents : l'AUTEUR DU
+      PREMIER MESSAGE du sujet — utile seulement si c'est vraiment le
+      joueur lui-même qui a posté (rare si c'est le staff qui gère la
+      création des sujets, voir la note de sécurité dans
+      fiche-contenu.html à ce sujet). */
+function ficheIdentifierPersonnage(racine) {
+  const attribut = (racine.getAttribute('data-joueur') || '').trim();
+  if (attribut) {
+    const mUrl = attribut.match(/\/u(\d+)(?:[/?#]|$)/);
+    const mNombre = attribut.match(/^(\d+)$/);
+    const id = mUrl ? mUrl[1] : (mNombre ? mNombre[1] : null);
+    if (id) return { id, pseudo: null }; // pseudo récupéré en tâche de fond, voir plus bas
+  }
+
+  const mUrl = location.pathname.match(/\/u(\d+)(?:[/?#]|$)/);
+  if (mUrl) {
+    const mTitre = document.title.match(/^Voir un profil - (.+)$/);
+    return { id: mUrl[1], pseudo: mTitre ? mTitre[1].trim() : null };
+  }
+
+  const premierMessage = document.querySelector('.post');
+  const lienAuteur = premierMessage
+    ? premierMessage.querySelector('.post-tps-username a[href*="/u"]')
+    : null;
+  if (lienAuteur) {
+    const m = (lienAuteur.getAttribute('href') || '').match(/\/u(\d+)(?:[/?#]|$)/);
+    if (m) return { id: m[1], pseudo: lienAuteur.textContent.trim() };
+  }
+
+  return { id: null, pseudo: null };
+}
+
+/* Quand l'id vient de l'attribut data-joueur, on n'a pas le pseudo
+   tout de suite (pas d'élément du DOM sous la main pour le lire) —
+   on va le chercher en tâche de fond en récupérant la page de profil
+   du joueur concerné, juste pour l'affichage lisible dans Firebase
+   (aucun impact sur le fonctionnement si ça échoue). */
+async function fichePseudoDepuisProfil(userId) {
+  try {
+    const res = await fetch('/u' + userId);
+    if (!res.ok) return null;
+    const html = await res.text();
+    const m = html.match(/<title>\s*Voir un profil - (.+?)\s*<\/title>/);
+    return m ? m[1].trim() : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/* L'id du joueur actuellement CONNECTÉ (celui qui regarde la page,
+   pas forcément le propriétaire de la fiche) : repéré via le lien
+   "Voir mon profil" du menu du forum, présent sur toutes les pages —
+   même technique que monnaie-script.js. */
+function ficheMonIdConnecte() {
+  const liens = document.querySelectorAll('a[href*="/u"]');
+  for (const a of liens) {
+    if (a.textContent.trim().toLowerCase() === 'voir mon profil') {
+      const m = (a.getAttribute('href') || '').match(/\/u(\d+)(?:[/?#]|$)/);
+      if (m) return m[1];
+    }
+  }
+  return null;
 }
 
 /* Vrai seulement si la personne qui regarde la page est bien la
-   propriétaire de ce profil : Forumactif n'affiche le lien "Éditer
-   mon profil" (mode=editprofile) que sur son propre profil. On s'en
-   sert pour n'afficher les boutons d'achat qu'au bon joueur. */
-function ficheEstProprietaire() {
-  return !!document.querySelector('a[href*="mode=editprofile"]');
-}
-
-/* Le pseudo du personnage DONT ON REGARDE LE PROFIL (pas forcément
-   celui qui regarde) : sur une page /u..., Forumactif met le titre de
-   la page sous la forme "Voir un profil - Pseudo" — c'est plus fiable
-   que d'aller chercher un élément précis du thème, qui peut changer. */
-function fichePseudoDepuisTitre() {
-  const m = document.title.match(/^Voir un profil - (.+)$/);
-  return m ? m[1].trim() : null;
+   propriétaire de CETTE fiche (celle d'id "userId") :
+   - Sur une page de profil, Forumactif n'affiche le lien "Éditer mon
+     profil" (mode=editprofile) que sur son propre profil.
+   - Sur un sujet de forum, ce lien n'existe pas : on compare plutôt
+     l'id du joueur connecté avec celui du personnage de la fiche. */
+function ficheEstProprietaire(userId) {
+  if (document.querySelector('a[href*="mode=editprofile"]')) return true;
+  const monId = ficheMonIdConnecte();
+  return !!(monId && userId && monId === userId);
 }
 
 async function ficheChargerDonnees(userId) {
@@ -93,8 +168,9 @@ async function ficheSauvegarder(userId, partiel) {
    Mise en place d'une instance de fiche
    ------------------------------------------------------------------ */
 function initFicheInstance(racine) {
-  const userId = ficheIdDepuisUrl();
-  const proprietaire = ficheEstProprietaire();
+  const identification = ficheIdentifierPersonnage(racine);
+  const userId = identification.id;
+  const proprietaire = ficheEstProprietaire(userId);
 
   const badge = racine.querySelector('.fp-badge');
   const niveauNum = racine.querySelector('.fp-niveau-num');
@@ -115,7 +191,7 @@ function initFicheInstance(racine) {
   const zonesEdition = racine.querySelectorAll('.fp-edition');
 
   if (!userId) {
-    if (messageEl) messageEl.textContent = "Impossible de déterminer le personnage (page non reconnue).";
+    if (messageEl) messageEl.textContent = "Impossible de déterminer le personnage (ni page de profil, ni sujet avec un premier message identifiable).";
     return;
   }
 
@@ -185,9 +261,18 @@ function initFicheInstance(racine) {
       // Garde le pseudo à jour dans Firebase, juste pour que ce soit
       // lisible d'un coup d'œil dans la console (aucun impact sur le
       // fonctionnement) : on n'écrit que si ça a changé.
-      const pseudoActuel = fichePseudoDepuisTitre();
-      if (pseudoActuel && pseudoActuel !== donnees.pseudo) {
-        ficheSauvegarder(userId, { pseudo: pseudoActuel }).catch(() => {});
+      if (identification.pseudo) {
+        if (identification.pseudo !== donnees.pseudo) {
+          ficheSauvegarder(userId, { pseudo: identification.pseudo }).catch(() => {});
+        }
+      } else {
+        // Cas "data-joueur" : pas de pseudo sous la main tout de
+        // suite, on va le chercher en tâche de fond.
+        fichePseudoDepuisProfil(userId).then((pseudo) => {
+          if (pseudo && pseudo !== donnees.pseudo) {
+            ficheSauvegarder(userId, { pseudo }).catch(() => {});
+          }
+        });
       }
     })
     .catch((err) => {
