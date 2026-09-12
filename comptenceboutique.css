@@ -1,0 +1,254 @@
+/* ==========================================================
+   BOUTIQUE DES COMPÉTENCES — pathofdawn.forumactif.com
+   Même famille visuelle (bois/or/rouge sombre) que boutique-style.css
+   et fiche-script.js, mais TOUT est préfixé "cshop-" (au lieu de
+   "shop-"/"item-") : ce fichier est chargé sitewide, sur les mêmes
+   pages que la boutique d'équipement, donc les deux jeux de classes ne
+   doivent jamais se marcher dessus.
+   ========================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --cshop-bg-bois: #1c140f;
+  --cshop-bg-bois-clair: #241a13;
+  --cshop-bg-etal: #2a1f18;
+  --cshop-text-main: #d3c4a9;
+  --cshop-text-muted: #8c7d6b;
+  --cshop-accent-gold: #c2a057;
+  --cshop-accent-red: #8f2d2d;
+  --cshop-accent-red-clair: #b23c3c;
+  --cshop-border-color: #3d2b1f;
+  --cshop-stat-physique: #b1524f;
+  --cshop-stat-pouvoir: #7a93c2;
+  --cshop-font-title: 'Cinzel', serif;
+  --cshop-font-body: 'Crimson Text', serif;
+}
+
+.cshop-container,
+.cshop-container * {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+  float: none !important;
+}
+.cshop-container br { display: none !important; }
+
+.cshop-container {
+  display: block !important;
+  width: 100% !important;
+  max-width: 780px !important;
+  margin: 20px auto !important;
+  background:
+    repeating-linear-gradient(180deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 2px, transparent 2px, transparent 40px),
+    linear-gradient(180deg, var(--cshop-bg-bois) 0%, #150f0b 100%);
+  color: var(--cshop-text-main);
+  font-family: var(--cshop-font-body);
+  line-height: 1.6;
+  font-size: 1rem;
+  padding: 20px;
+  border: 1px solid var(--cshop-border-color);
+  border-radius: 4px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 60px rgba(0,0,0,0.6);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---------- En-tête ---------- */
+.cshop-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  position: relative;
+}
+.cshop-header::after {
+  content: '';
+  display: block;
+  width: 70%;
+  height: 2px;
+  margin: 14px auto 0;
+  background: linear-gradient(90deg, transparent, var(--cshop-accent-red-clair), transparent);
+}
+.cshop-header h1 {
+  font-family: var(--cshop-font-title);
+  color: var(--cshop-accent-gold);
+  font-size: 1.5rem;
+  letter-spacing: 1.5px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+.cshop-header p {
+  color: var(--cshop-text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+/* Rappel visible en haut du poste : archétype requis, une seule
+   acquisition par compétence, l'évolution se fait sur la fiche. */
+.cshop-rappel {
+  background: var(--cshop-bg-etal);
+  border: 1px solid var(--cshop-border-color);
+  border-left: 3px solid var(--cshop-accent-gold);
+  border-radius: 3px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  font-size: 0.85rem;
+  color: var(--cshop-text-muted);
+  line-height: 1.5;
+}
+
+/* ---------- Filtres ---------- */
+.cshop-filters {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.cshop-filter-btn {
+  padding: 6px 14px;
+  background: var(--cshop-bg-etal);
+  border: 1px solid var(--cshop-border-color);
+  border-radius: 3px;
+  color: var(--cshop-text-muted);
+  font-family: var(--cshop-font-title);
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cshop-filter-btn:hover {
+  color: var(--cshop-text-main);
+  border-color: var(--cshop-accent-red-clair);
+}
+.cshop-filter-btn.active {
+  background: var(--cshop-accent-red);
+  border-color: var(--cshop-accent-red-clair);
+  color: #f0e6d2;
+}
+
+/* ---------- Grille de compétences ---------- */
+.cshop-grid {
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
+}
+.cshop-empty {
+  text-align: center;
+  color: var(--cshop-text-muted);
+  font-style: italic;
+  padding: 30px 0;
+}
+
+/* ---------- Carte compétence ---------- */
+.cshop-card {
+  background: var(--cshop-bg-etal);
+  border: 1px solid var(--cshop-border-color);
+  border-radius: 4px;
+  padding: 14px 16px;
+  position: relative;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cshop-card:hover {
+  border-color: var(--cshop-accent-red-clair);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.5), 0 0 18px rgba(143, 45, 45, 0.25);
+}
+.cshop-card.brillance { animation: cshopBrillance 0.75s ease-out; }
+@keyframes cshopBrillance {
+  0%   { box-shadow: 0 0 0 rgba(255,244,214,0); }
+  30%  { box-shadow: 0 0 24px rgba(255,244,214,0.55); }
+  100% { box-shadow: 0 0 0 rgba(255,244,214,0); }
+}
+
+.cshop-card-header {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px !important;
+}
+.cshop-nom {
+  font-family: var(--cshop-font-title);
+  color: var(--cshop-accent-gold);
+  font-size: 1.05rem;
+}
+.cshop-badges {
+  display: flex !important;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cshop-categorie {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid currentColor;
+  font-weight: 600;
+}
+.cshop-categorie.cat-physique { color: var(--cshop-stat-physique); }
+.cshop-categorie.cat-pouvoir { color: var(--cshop-stat-pouvoir); }
+.cshop-race-exclusive {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--cshop-accent-gold);
+  color: var(--cshop-accent-gold);
+  font-weight: 600;
+}
+
+.cshop-lore {
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--cshop-text-main);
+  line-height: 1.5;
+  margin-bottom: 10px !important;
+}
+.cshop-note-evolution {
+  font-size: 0.75rem;
+  color: var(--cshop-text-muted);
+  margin-bottom: 10px !important;
+}
+
+.cshop-actions {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cshop-btn-equiper {
+  font-family: var(--cshop-font-title);
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 3px;
+  border: 1px solid var(--cshop-accent-red-clair);
+  background: var(--cshop-accent-red);
+  color: #f0e6d2;
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+.cshop-btn-equiper:hover:not(:disabled) { filter: brightness(1.12); }
+.cshop-btn-equiper:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+.cshop-statut {
+  font-size: 0.78rem;
+  color: var(--cshop-text-muted);
+  font-style: italic;
+}
+.cshop-statut.cshop-statut-ok { color: var(--cshop-stat-physique); }
+.cshop-statut.cshop-statut-erreur { color: var(--cshop-accent-red-clair); }
+.cshop-statut.cshop-statut-equipe { color: var(--cshop-accent-gold); font-weight: 600; font-style: normal; }
+
+.cshop-message-globale {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--cshop-text-muted);
+  text-align: center;
+  min-height: 1.2em;
+}
+.cshop-message-globale.cshop-ok { color: var(--cshop-stat-physique); }
+.cshop-message-globale.cshop-erreur { color: var(--cshop-accent-red-clair); }
