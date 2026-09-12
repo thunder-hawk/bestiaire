@@ -176,13 +176,23 @@ function monnaieMonIdJoueur() {
   return null;
 }
 
+/* Le pseudo du joueur connecté : affiché en clair (ex. "Vita") juste
+   à côté du bouton "Déconnexion" du menu du forum, sur toutes les
+   pages, dans un <span class="highlighted"> — un seul de ces éléments
+   existe sur la page, donc le sélecteur est fiable. */
+function monnaieMonPseudo() {
+  const el = document.querySelector('span.highlighted');
+  return el ? el.textContent.trim() : null;
+}
+
 async function monnaieChargerPersonnage(userId) {
   const res = await fetch(MONNAIE_FIREBASE_URL + '/personnages/' + userId + '.json');
   if (!res.ok) throw new Error('Erreur réseau (' + res.status + ')');
   const data = await res.json();
   return {
     solde: (data && typeof data.solde === 'number') ? data.solde : 0,
-    dernierPostId: (data && typeof data.dernierPostId === 'number') ? data.dernierPostId : 0
+    dernierPostId: (data && typeof data.dernierPostId === 'number') ? data.dernierPostId : 0,
+    pseudo: (data && typeof data.pseudo === 'string') ? data.pseudo : null
   };
 }
 
@@ -351,6 +361,14 @@ async function monnaieRafraichirIcone(userId) {
   try {
     const personnage = await monnaieChargerPersonnage(userId);
     monnaieEtatIcone.solde = personnage.solde;
+
+    // Garde le pseudo à jour dans Firebase, juste pour le repérer
+    // facilement dans la console (aucun impact sur le fonctionnement) :
+    // on n'écrit que si ça a changé.
+    const pseudoActuel = monnaieMonPseudo();
+    if (pseudoActuel && pseudoActuel !== personnage.pseudo) {
+      monnaieSauvegarderPersonnage(userId, { pseudo: pseudoActuel }).catch(() => {});
+    }
   } catch (e) {
     monnaieEtatIcone.solde = monnaieEtatIcone.solde; // on garde la dernière valeur connue
   }
