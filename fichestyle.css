@@ -199,16 +199,8 @@
   color: var(--fp-text-muted);
   margin-top: 4px !important;
 }
-.fp-stat-detail input {
-  width: 56px;
-  padding: 2px 5px;
-  background: var(--fp-bg-bois-clair);
-  border: 1px solid var(--fp-border-color);
-  border-radius: 3px;
-  color: var(--fp-text-main);
-  font-family: var(--fp-font-body);
-  font-size: 0.85rem;
-}
+.fp-pv-base,
+.fp-dps-base { color: var(--fp-text-main); font-weight: 600; }
 .fp-bonus { color: var(--fp-accent-gold); font-weight: 600; }
 
 /* ---------- Boutons ---------- */
