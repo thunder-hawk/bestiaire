@@ -1,9 +1,20 @@
 /* ==========================================================
    BOUTIQUE — script
-   Volontairement plus simple que celui du bestiaire : chaque objet
-   affiche directement toutes ses infos sur sa carte (pas de fenêtre
-   de détail à ouvrir), donc pas besoin de reconstruire du HTML à
-   partir de texte brut. Le script ne fait que filtrer/chercher/trier.
+   Chaque objet affiche directement toutes ses infos sur sa carte (pas
+   de fenêtre de détail à ouvrir), donc pas besoin de reconstruire du
+   HTML à partir de texte brut. En plus de filtrer/chercher/trier, le
+   script écrit maintenant VRAIMENT dans Firebase au clic sur
+   "Équiper" (voir la section BOUTIQUE — ÉQUIPEMENT plus bas) : chaque
+   carte cible directement le visiteur actuellement connecté (voir
+   boutiqueMonIdConnecte(), même technique que fiche-script.js et
+   monnaie-script.js), pas de fenêtre à choisir "pour qui" — équiper
+   ici, c'est toujours équiper SON PROPRE personnage.
+
+   Équiper un objet dépense son prix immédiatement ET remplace tout
+   ce qui occupait déjà cet emplacement, sans remboursement (voir la
+   note d'architecture dans firebase-regles.json / fiche-script.js) :
+   il n'existe pas d'inventaire "possédé mais pas porté", un objet
+   acheté est TOUJOURS équipé dans la foulée.
    ========================================================== */
 
 /* Nettoyage des <br> et espaces vides que l'éditeur Forumactif ajoute
@@ -70,7 +81,145 @@ function obtenirTooltipBoutique() {
   return tooltipBoutiquePartage;
 }
 
+/* ------------------------------------------------------------------
+   BOUTIQUE — ÉQUIPEMENT (écrit vraiment dans Firebase)
+   ------------------------------------------------------------------ */
+
+/* Même base Firebase que fiche-script.js (un seul et même projet) — si
+   tu changes l'un, pense à changer l'autre pareil. */
+const BOUTIQUE_FIREBASE_URL = "https://pathofdawn-fiches-default-rtdb.europe-west1.firebasedatabase.app";
+
+/* Emplacements valides : les 5 pièces d'armure ont chacune leur propre
+   emplacement ; les armes (une ou deux mains, épée ou hache) partagent
+   toutes les deux mêmes emplacements "arme1"/"arme2" — voir
+   determinerSlotsCible() plus bas pour savoir lequel est choisi. */
+
+/* L'id du joueur actuellement CONNECTÉ (celui qui clique, pas un
+   joueur choisi dans un menu) — même technique que fiche-script.js et
+   monnaie-script.js : le lien "Voir mon profil" du menu du forum,
+   présent sur toutes les pages. */
+function boutiqueMonIdConnecte() {
+  const liens = document.querySelectorAll('a[href*="/u"]');
+  for (const a of liens) {
+    if (a.textContent.trim().toLowerCase() === 'voir mon profil') {
+      const m = (a.getAttribute('href') || '').match(/\/u(\d+)(?:[/?#]|$)/);
+      if (m) return m[1];
+    }
+  }
+  return null;
+}
+
+async function boutiqueChargerPersonnage(userId) {
+  const res = await fetch(BOUTIQUE_FIREBASE_URL + '/personnages/' + userId + '.json');
+  if (!res.ok) throw new Error('Erreur réseau (' + res.status + ')');
+  const data = await res.json();
+  return {
+    solde: (data && typeof data.solde === 'number') ? data.solde : 0,
+    equipement: (data && data.equipement && typeof data.equipement === 'object') ? data.equipement : {}
+  };
+}
+
+/* Les clés du corps envoyé utilisent la notation "chemin/avec/slash"
+   (ex: "equipement/casque") plutôt que des objets imbriqués : un PATCH
+   Firebase remplace ENTIÈREMENT l'objet à chaque chemin donné, donc
+   envoyer {"equipement": {"casque": "..."}} effacerait tout le reste
+   de l'équipement déjà porté (épaulettes, torse...). La notation à
+   plat fait un vrai "multi-location update" qui ne touche QUE les
+   chemins listés, tout le reste reste intact. */
+async function boutiqueSauvegarder(userId, partiel) {
+  const res = await fetch(BOUTIQUE_FIREBASE_URL + '/personnages/' + userId + '.json', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(partiel)
+  });
+  if (!res.ok) throw new Error('Erreur réseau (' + res.status + ')');
+}
+
+/* Décide dans QUEL(S) emplacement(s) d'arme ranger une nouvelle arme :
+   - Une arme à deux mains occupe TOUJOURS les deux emplacements à la
+     fois (et remplace tout ce qui s'y trouvait, sans remboursement).
+   - Une arme à une main va dans le premier emplacement libre ; si les
+     deux sont déjà occupés, elle remplace l'emplacement principal
+     (arme1) par défaut — un choix volontairement simple plutôt que de
+     demander "laquelle remplacer ?" à chaque achat. */
+function determinerSlotsCible(slotDeBase, deuxMains, equipementActuel) {
+  if (slotDeBase !== 'arme') return [slotDeBase];
+  if (deuxMains) return ['arme1', 'arme2'];
+  if (!equipementActuel.arme1) return ['arme1'];
+  if (!equipementActuel.arme2) return ['arme2'];
+  return ['arme1'];
+}
+
+function initShopEquiper(card) {
+  const btn = card.querySelector('.item-btn-equiper');
+  const statutEl = card.querySelector('.item-statut');
+  if (!btn || !statutEl) return;
+
+  const itemId = card.getAttribute('data-item-id');
+  const slot = card.getAttribute('data-slot');
+  const deuxMains = card.getAttribute('data-deux-mains') === 'true';
+  const prix = parseFloat(card.getAttribute('data-price')) || 0;
+  if (!itemId || !slot) return; // carte pas encore configurée (attributs manquants)
+
+  function afficherStatut(texte, type) {
+    statutEl.textContent = texte;
+    statutEl.className = 'item-statut' + (type ? ' item-statut-' + type : '');
+  }
+
+  btn.addEventListener('click', async (e) => {
+    // Un clic sur ce bouton ne doit pas aussi ouvrir/fermer la bulle
+    // de description (le clic sur la carte entière fait déjà ça).
+    e.stopPropagation();
+
+    const userId = boutiqueMonIdConnecte();
+    if (!userId) {
+      afficherStatut('Connecte-toi pour équiper un objet.', 'erreur');
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      // Comme pour le passage de niveau sur la fiche : on relit le
+      // solde et l'équipement ACTUELS directement depuis Firebase juste
+      // avant d'agir, pour éviter qu'un double-clic ou deux onglets
+      // ouverts en même temps ne se marchent dessus.
+      const donnees = await boutiqueChargerPersonnage(userId);
+
+      if (donnees.solde < prix) {
+        afficherStatut('Il manque ' + (prix - donnees.solde) + ' éclats.', 'erreur');
+        return;
+      }
+
+      const slotsCible = determinerSlotsCible(slot, deuxMains, donnees.equipement || {});
+      const nouveauSolde = donnees.solde - prix;
+      const partiel = { solde: nouveauSolde };
+      slotsCible.forEach((s) => { partiel['equipement/' + s] = itemId; });
+
+      await boutiqueSauvegarder(userId, partiel);
+      declencherBrillance(card);
+      afficherStatut('Équipé ! Rends-toi sur ta fiche pour le voir.', 'equipe');
+    } catch (err) {
+      afficherStatut("Impossible d'équiper pour le moment, réessaie.", 'erreur');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 function initShopInstance(instance) {
+  /* Le filet de sécurité tout en bas de ce fichier (DOMContentLoaded +
+     'load' + deux setTimeout) peut rappeler cette fonction plusieurs
+     fois sur le MÊME poste déjà initialisé. Poser une deuxième fois
+     tous les écouteurs de clic serait sans danger pour la recherche/le
+     tri/la bulle de description, mais PAS pour le bouton "Équiper" :
+     deux écouteurs indépendants sur le même bouton se déclenchent TOUS
+     LES DEUX sur un seul clic, ce qui débiterait le joueur deux fois
+     (ou plus) pour un seul achat. D'où ce garde-fou : on ne pose les
+     écouteurs qu'une seule fois par poste, quel que soit le nombre de
+     fois où initShopInstance() est rappelée derrière. */
+  if (instance.dataset.shopEcouteursPoses === '1') return;
+  instance.dataset.shopEcouteursPoses = '1';
+
   nettoyerParasitesBoutique(instance);
 
   const searchInput = instance.querySelector('.shop-search-bar input');
@@ -201,6 +350,7 @@ function initShopInstance(instance) {
     card.addEventListener('animationend', (e) => {
       if (e.animationName === 'brillanceSweep') card.classList.remove('brillance');
     });
+    initShopEquiper(card);
   });
 
   // Clic en dehors de la carte ouverte (et en dehors de la bulle elle-même,
@@ -247,10 +397,10 @@ function initBoutique() {
    soir même !) : lancement immédiat si la page est déjà prête, sinon on
    attend DOMContentLoaded, et dans tous les cas on relance une fois de
    plus à l'événement 'load' au cas où le tout premier essai aurait été
-   manqué. Comme initShopInstance() ne fait que (re)poser des écouteurs
-   et nettoyer un DOM déjà propre, le rappeler plusieurs fois ne casse
-   jamais rien — pas besoin (et surtout pas de risque) d'un système
-   "anti-double-appel". */
+   manqué. initShopInstance() peut sans risque être rappelée plusieurs
+   fois sur le même poste (voir son garde-fou "shopEcouteursPoses" tout
+   en haut de la fonction, qui empêche de poser deux fois les mêmes
+   écouteurs de clic sur "Équiper"). */
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initBoutique);
 } else {
