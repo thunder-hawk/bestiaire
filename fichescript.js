@@ -51,6 +51,15 @@ function ficheEstProprietaire() {
   return !!document.querySelector('a[href*="mode=editprofile"]');
 }
 
+/* Le pseudo du personnage DONT ON REGARDE LE PROFIL (pas forcément
+   celui qui regarde) : sur une page /u..., Forumactif met le titre de
+   la page sous la forme "Voir un profil - Pseudo" — c'est plus fiable
+   que d'aller chercher un élément précis du thème, qui peut changer. */
+function fichePseudoDepuisTitre() {
+  const m = document.title.match(/^Voir un profil - (.+)$/);
+  return m ? m[1].trim() : null;
+}
+
 async function ficheChargerDonnees(userId) {
   if (!FICHE_FIREBASE_URL || FICHE_FIREBASE_URL.indexOf('COLLE-ICI') !== -1) {
     throw new Error('FIREBASE_NON_CONFIGURE');
@@ -66,7 +75,8 @@ async function ficheChargerDonnees(userId) {
        monnaie-script.js, qui l'alimente à chaque message posté dans
        une zone de RP) : on le dépense directement à chaque achat de
        niveau, ce n'est plus un calcul "total gagné - coût cumulé". */
-    solde: (data && typeof data.solde === 'number') ? data.solde : 0
+    solde: (data && typeof data.solde === 'number') ? data.solde : 0,
+    pseudo: (data && typeof data.pseudo === 'string') ? data.pseudo : null
   };
 }
 
@@ -169,7 +179,17 @@ function initFicheInstance(racine) {
   }
 
   ficheChargerDonnees(userId)
-    .then((donnees) => { etat = donnees; rafraichirAffichage(); })
+    .then((donnees) => {
+      etat = donnees;
+      rafraichirAffichage();
+      // Garde le pseudo à jour dans Firebase, juste pour que ce soit
+      // lisible d'un coup d'œil dans la console (aucun impact sur le
+      // fonctionnement) : on n'écrit que si ça a changé.
+      const pseudoActuel = fichePseudoDepuisTitre();
+      if (pseudoActuel && pseudoActuel !== donnees.pseudo) {
+        ficheSauvegarder(userId, { pseudo: pseudoActuel }).catch(() => {});
+      }
+    })
     .catch((err) => {
       if (err && err.message === 'FIREBASE_NON_CONFIGURE') {
         afficherMessage("Base non configurée : remplace FICHE_FIREBASE_URL en haut du script.", 'erreur');
