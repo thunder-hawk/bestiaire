@@ -4,11 +4,14 @@
 
    ⚠️ IMPORTANT : contrairement à fiche-script.js (collé dans le champ
    de profil campo18, donc actif seulement sur les pages /u...), CE
-   fichier doit tourner sur TOUTES LES PAGES DU FORUM. Colle-le avec
-   monnaie-style.css dans :
-     ACP > Modules > "HTML et JAVASCRIPT" > Gérer les codes HTML
+   fichier doit tourner sur TOUTES LES PAGES DU FORUM :
+     ACP > Modules > "HTML et JAVASCRIPT" > Gérer les codes JavaScript
      > Nouveau code > position "Partout"
-   (voir monnaie-injection.html pour le code exact à coller).
+   Colle-y juste : <script src="LIEN_DIRECT_VERS_monnaie-script.js?v=1"></script>
+   (pas besoin d'un second code pour le CSS : ce fichier injecte lui-
+   même son style au chargement, voir MONNAIE_CSS plus bas — pratique
+   puisque, contrairement aux codes JavaScript, les codes HTML de ton
+   forum n'ont pas d'option "Partout").
 
    Ce que fait ce script sur chaque page :
    1. Il repère le joueur connecté (lien "Voir mon profil" du menu du
@@ -25,6 +28,82 @@
    ========================================================== */
 
 const MONNAIE_FIREBASE_URL = "https://pathofdawn-fiches-default-rtdb.europe-west1.firebasedatabase.app";
+
+/* Le CSS du médaillon, injecté directement par ce script (voir
+   monnaieInjecterStyle() plus bas) plutôt que via un <link> séparé —
+   ça évite d'avoir à déployer un second code "Partout" pour la
+   feuille de style. Même famille visuelle bois/or que la boutique et
+   la fiche de personnage. */
+const MONNAIE_CSS = `
+.monnaie-widget,
+.monnaie-widget * {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+}
+.monnaie-widget {
+  position: fixed !important;
+  left: 16px !important;
+  bottom: 16px !important;
+  z-index: 999999 !important;
+  font-family: 'Crimson Text', Georgia, serif;
+}
+.monnaie-medaillon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50% !important;
+  background: radial-gradient(circle at 35% 30%, #c2a057, #4a1c14) !important;
+  border: 3px solid #e0bc6c !important;
+  box-shadow: 0 0 12px rgba(194, 160, 87, 0.55), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 8px rgba(0,0,0,0.6) !important;
+  color: #f0e6d2;
+  font-size: 1.4rem;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: box-shadow 0.25s ease, transform 0.15s ease;
+}
+.monnaie-medaillon:hover {
+  box-shadow: 0 0 18px rgba(212, 180, 101, 0.75), 0 4px 14px rgba(0,0,0,0.6), inset 0 0 8px rgba(0,0,0,0.6) !important;
+  transform: translateY(-2px);
+}
+.monnaie-medaillon:active { transform: translateY(0); }
+.monnaie-medaillon-icone {
+  text-shadow: 0 0 6px rgba(255,244,214,0.9);
+}
+.monnaie-bulle {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 62px !important;
+  min-width: 110px;
+  text-align: center;
+  background: linear-gradient(180deg, #2a1f18 0%, #150f0b 100%) !important;
+  color: #d3c4a9 !important;
+  border: 1px solid #5a4630 !important;
+  border-radius: 4px;
+  padding: 8px 14px !important;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+}
+.monnaie-bulle::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  bottom: -6px;
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: #150f0b transparent transparent transparent;
+}
+`;
+
+function monnaieInjecterStyle() {
+  if (document.getElementById('monnaie-style-injecte')) return;
+  const style = document.createElement('style');
+  style.id = 'monnaie-style-injecte';
+  style.textContent = MONNAIE_CSS;
+  document.head.appendChild(style);
+}
 
 /* Combien d'éclats gagnés par message posté dans une zone éligible.
    Modifiable à tout moment : ça ne change que les GAINS futurs, pas
@@ -235,6 +314,7 @@ async function monnaieSynchroniser(userId) {
 let monnaieEtatIcone = { solde: null };
 
 function monnaieConstruireIcone() {
+  monnaieInjecterStyle();
   if (document.querySelector('.monnaie-widget')) return document.querySelector('.monnaie-widget');
 
   const widget = document.createElement('div');
