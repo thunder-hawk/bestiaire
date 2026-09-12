@@ -179,9 +179,8 @@ function initFicheInstance(racine) {
   const dpsTotalEl = racine.querySelector('[data-type="dps"] .fp-stat-total');
   const pvBonusEl = racine.querySelector('[data-type="pv"] .fp-bonus');
   const dpsBonusEl = racine.querySelector('[data-type="dps"] .fp-bonus');
-  const pvInput = racine.querySelector('.fp-input-pv');
-  const dpsInput = racine.querySelector('.fp-input-dps');
-  const btnSauver = racine.querySelector('.fp-btn-sauver');
+  const pvBaseEl = racine.querySelector('.fp-pv-base');
+  const dpsBaseEl = racine.querySelector('.fp-dps-base');
   const btnAcheter = racine.querySelector('.fp-btn-acheter');
   const coutSuivantEl = racine.querySelector('.fp-cout-suivant');
   const labelNormal = racine.querySelector('.fp-label-normal');
@@ -195,8 +194,8 @@ function initFicheInstance(racine) {
     return;
   }
 
-  // Un visiteur (pas le propriétaire) ne voit ni les champs de saisie
-  // ni les boutons d'achat : juste le résultat, en lecture seule.
+  // Un visiteur (pas le propriétaire) ne voit pas le bouton d'achat :
+  // juste le résultat, en lecture seule.
   if (!proprietaire) zonesEdition.forEach((el) => el.remove());
 
   let etat = { niveau: 1, pvBase: 0, dpsBase: 0 };
@@ -217,8 +216,8 @@ function initFicheInstance(racine) {
     if (dpsBonusEl) dpsBonusEl.textContent = '+' + bonusDps;
     if (pvTotalEl) pvTotalEl.textContent = String((etat.pvBase || 0) + bonusPv);
     if (dpsTotalEl) dpsTotalEl.textContent = String((etat.dpsBase || 0) + bonusDps);
-    if (pvInput) pvInput.value = etat.pvBase || 0;
-    if (dpsInput) dpsInput.value = etat.dpsBase || 0;
+    if (pvBaseEl) pvBaseEl.textContent = String(etat.pvBase || 0);
+    if (dpsBaseEl) dpsBaseEl.textContent = String(etat.dpsBase || 0);
 
     const soldeDisponible = etat.solde || 0;
     if (soldeVal) soldeVal.textContent = String(soldeDisponible);
@@ -283,25 +282,6 @@ function initFicheInstance(racine) {
       }
       rafraichirAffichage();
     });
-
-  if (btnSauver) {
-    btnSauver.addEventListener('click', async () => {
-      const pv = Math.max(0, parseInt(pvInput.value, 10) || 0);
-      const dps = Math.max(0, parseInt(dpsInput.value, 10) || 0);
-      btnSauver.disabled = true;
-      try {
-        await ficheSauvegarder(userId, { pvBase: pv, dpsBase: dps });
-        etat.pvBase = pv;
-        etat.dpsBase = dps;
-        rafraichirAffichage();
-        afficherMessage('Stats de base enregistrées.', 'ok');
-      } catch (e) {
-        afficherMessage("Échec de l'enregistrement, réessaie.", 'erreur');
-      } finally {
-        btnSauver.disabled = false;
-      }
-    });
-  }
 
   if (btnAcheter) {
     btnAcheter.addEventListener('click', async () => {
