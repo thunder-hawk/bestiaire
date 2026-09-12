@@ -42,6 +42,18 @@ function echapperHtmlBoutique(texte) {
     .replace(/>/g, '&gt;');
 }
 
+/* Petit effet de "lueur" façon étoile filante qui balaie la carte au
+   clic (voir .item-card::after dans le CSS). On retire puis remet la
+   classe à chaque clic (avec un reflow forcé entre les deux) pour que
+   l'animation reparte bien de zéro même si on clique plusieurs fois de
+   suite très vite sur la même carte — sans ce petit détour, réappliquer
+   une classe déjà présente ne relance pas une animation CSS en cours. */
+function declencherBrillance(card) {
+  card.classList.remove('brillance');
+  void card.offsetWidth; // force le reflow
+  card.classList.add('brillance');
+}
+
 /* Infobulle de description : un seul élément partagé pour toute la page
    (même s'il y a plusieurs boutiques dessus), créé une seule fois et
    réutilisé ensuite. On vérifie qu'il est toujours bien dans la page au
@@ -176,12 +188,18 @@ function initShopInstance(instance) {
 
   cards.forEach((card) => {
     card.addEventListener('click', () => {
+      declencherBrillance(card);
       if (carteOuverte === card) {
         fermerTooltip();
       } else {
         if (carteOuverte) carteOuverte.classList.remove('ouverte');
         ouvrirTooltip(card);
       }
+    });
+    // Nettoyage : une fois l'animation terminée, on retire la classe pour
+    // que la carte reste dans un état "propre" entre deux clics.
+    card.addEventListener('animationend', (e) => {
+      if (e.animationName === 'brillanceSweep') card.classList.remove('brillance');
     });
   });
 
