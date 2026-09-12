@@ -299,6 +299,38 @@
    supprime en sauvegardant, cette règle le cache quand même. */
 .item-desc { display: none !important; }
 
+/* ---------- Bouton "Équiper" (achat = équipement direct) ---------- */
+.item-actions {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px !important;
+  flex-wrap: wrap;
+}
+.item-btn-equiper {
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--accent-red-clair);
+  background: var(--accent-red);
+  color: #f0e6d2;
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+.item-btn-equiper:hover:not(:disabled) { filter: brightness(1.12); }
+.item-btn-equiper:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+.item-statut {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.item-statut.item-statut-ok { color: var(--stat-pv); }
+.item-statut.item-statut-erreur { color: var(--accent-red-clair); }
+.item-statut.item-statut-equipe { color: var(--accent-gold); font-weight: 600; font-style: normal; }
+
 /* Étiquette de prix : accrochée en haut à droite de la carte entière
    maintenant que l'icône est petite (avant elle était sur le coin de
    la grande image). */
