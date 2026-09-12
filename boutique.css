@@ -197,6 +197,43 @@
   box-shadow: 0 5px 14px rgba(0,0,0,0.5), 0 0 18px rgba(143, 45, 45, 0.35);
 }
 
+/* Petite lueur façon "étoile filante" qui balaie la carte au clic.
+   Un ::after de la taille exacte de la carte (inset:0), avec un dégradé
+   diagonal beaucoup plus large que la carte elle-même (background-size
+   250%) : on ne fait que déplacer ce dégradé via background-position,
+   donc pas besoin d'un "overflow: hidden" sur .item-card (qui aurait
+   coupé l'étiquette de prix, volontairement à cheval sur le bord droit
+   de la carte). Immobile et invisible tant que la classe "brillance"
+   (ajoutée par le script au clic) n'est pas là. */
+.item-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 244, 214, 0.75) 50%,
+    rgba(255, 255, 255, 0) 58%,
+    transparent 70%
+  );
+  background-size: 250% 250%;
+  background-position: -40% -40%;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.item-card.brillance::after {
+  animation: brillanceSweep 0.75s ease-out;
+}
+@keyframes brillanceSweep {
+  0%   { background-position: -60% -60%; opacity: 0; }
+  12%  { opacity: 1; }
+  55%  { opacity: 1; }
+  100% { background-position: 160% 160%; opacity: 0; }
+}
+
 /* Cadre-emplacement de l'icône, façon case d'inventaire : taille fixe,
    légèrement plus grande que l'icône (64px) pour garder une bordure
    nette, fond encastré, coins un peu dorés comme du métal serti. */
