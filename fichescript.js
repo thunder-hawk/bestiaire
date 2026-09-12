@@ -303,7 +303,7 @@ const FICHE_NOMS_SLOTS = {
    (thunder-hawk/bestiaire) via jsDelivr, comme fiche-script.js
    lui-même. Remplace juste la partie "LIEN_DIRECT_VERS_DOSSIER" une
    fois les images poussées. */
-const FICHE_ICONES_BASE_URL = "https://cdn.jsdelivr.net/gh/thunder-hawk/bestiaire@main/icones-niveau";
+const FICHE_ICONES_BASE_URL = "LIEN_DIRECT_VERS_DOSSIER_ICONES_NIVEAU";
 
 /* Injecté nous-mêmes en JS au chargement (voir ficheInjecterStyle()
    plus bas) plutôt que via un <link> séparé — comme ça, l'endroit où
@@ -497,7 +497,12 @@ const FICHE_CSS = `
   padding: 7px 12px;
   font-size: 0.85rem;
 }
-.fp-equip-slot { color: var(--fp-text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; }
+/* "display: block" plutôt qu'un <br> entre les deux : la règle
+   ".fiche-progression br { display: none !important; }" plus haut
+   (qui sert à nettoyer les <br> parasites que Forumactif ajoute
+   ailleurs) aurait aussi caché un <br> ici, collant la catégorie et
+   le nom de l'objet sur la même ligne (bug remonté par test). */
+.fp-equip-slot { display: block !important; color: var(--fp-text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px !important; }
 .fp-equip-nom { color: var(--fp-text-main); }
 .fp-equip-bonus { font-weight: 600; }
 .fp-equip-bonus.stat-pv { color: var(--fp-stat-pv); }
@@ -925,7 +930,7 @@ function initFicheInstance(racine) {
       const bonusTexte = item ? ('+' + item.bonusValeur + ' ' + item.bonusStat.toUpperCase()) : '';
       lignes.push(
         '<div class="fp-equip-item">' +
-          '<span><span class="fp-equip-slot">' + (FICHE_NOMS_SLOTS[slot] || slot) + '</span><br>' +
+          '<span><span class="fp-equip-slot">' + (FICHE_NOMS_SLOTS[slot] || slot) + '</span>' +
           '<span class="fp-equip-nom">' + nom + suffixe + '</span></span>' +
           '<span class="fp-equip-bonus stat-' + statClasse + '">' + bonusTexte + '</span>' +
         '</div>'
