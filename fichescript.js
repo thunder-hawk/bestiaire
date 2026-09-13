@@ -303,7 +303,7 @@ const FICHE_NOMS_SLOTS = {
    (thunder-hawk/bestiaire) via jsDelivr, comme fiche-script.js
    lui-même. Remplace juste la partie "LIEN_DIRECT_VERS_DOSSIER" une
    fois les images poussées. */
-const FICHE_ICONES_BASE_URL = "LIEN_DIRECT_VERS_DOSSIER_ICONES_NIVEAU";
+const FICHE_ICONES_BASE_URL = "https://cdn.jsdelivr.net/gh/thunder-hawk/bestiaire@main/icones-niveau";
 
 /* Injecté nous-mêmes en JS au chargement (voir ficheInjecterStyle()
    plus bas) plutôt que via un <link> séparé — comme ça, l'endroit où
