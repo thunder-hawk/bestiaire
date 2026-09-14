@@ -303,7 +303,7 @@ const FICHE_NOMS_SLOTS = {
    (thunder-hawk/bestiaire) via jsDelivr, comme fiche-script.js
    lui-même. Remplace juste la partie "LIEN_DIRECT_VERS_DOSSIER" une
    fois les images poussées. */
-const FICHE_ICONES_BASE_URL = "LIEN_DIRECT_VERS_DOSSIER_ICONES_NIVEAU";
+const FICHE_ICONES_BASE_URL = "https://cdn.jsdelivr.net/gh/thunder-hawk/bestiaire@main/icones-niveau";
 
 /* Injecté nous-mêmes en JS au chargement (voir ficheInjecterStyle()
    plus bas) plutôt que via un <link> séparé — comme ça, l'endroit où
@@ -577,7 +577,7 @@ const FICHE_CSS = `
   border: 1px solid var(--fp-border-color);
   transition: all 0.25s ease;
 }
-.fp-archetype-icon svg { width: 26px !important; height: 26px !important; display: block !important; max-width: none !important; }
+.fp-archetype-icon-tile img { width: 26px !important; height: 26px !important; display: block !important; max-width: none !important; min-width: 26px !important; flex-shrink: 0 !important; object-fit: contain !important; opacity: 0.92; }
 .fp-archetype-icon .fp-archetype-nom {
   font-family: var(--fp-font-title);
   font-weight: 700;
@@ -1442,25 +1442,12 @@ const FICHE_SQUELETTE = `
   <div class="fp-section-titre fp-edition">Spécialité</div>
   <div class="fp-archetypes fp-edition">
     <button type="button" class="fp-archetype-icon" data-archetype="guerrier">
-      <span class="fp-archetype-icon-tile">
-        <svg viewBox="0 0 24 24">
-          <path d="M11.2 3 L12.8 3 L12.8 21 L11.2 21 Z" fill="currentColor"/>
-          <path d="M12 5.5 C8.5 3.2 4 3.3 2 6 C3.6 7.4 4.4 9.4 4 11.5 C7.2 11 10 9 12 8.2 Z" fill="currentColor"/>
-          <path d="M12 5.5 C15.5 3.2 20 3.3 22 6 C20.4 7.4 19.6 9.4 20 11.5 C16.8 11 14 9 12 8.2 Z" fill="currentColor"/>
-          <circle cx="12" cy="21.5" r="1.3" fill="currentColor"/>
-        </svg>
-      </span>
+      <span class="fp-archetype-icon-tile"><img src="https://cdn.jsdelivr.net/gh/thunder-hawk/bestiaire@main/icones-archetype/guerrier.png" alt="Guerrier"></span>
       <span class="fp-archetype-nom">Guerrier</span>
       <span class="fp-archetype-cadenas" hidden>verrouillé</span>
     </button>
     <button type="button" class="fp-archetype-icon" data-archetype="mage">
-      <span class="fp-archetype-icon-tile">
-        <svg viewBox="0 0 24 24">
-          <line x1="15" y1="6.5" x2="6" y2="21.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
-          <path d="M15 1.7 L19 6 L15 10.3 L11 6 Z" fill="currentColor"/>
-          <circle cx="15" cy="6" r="1.6" fill="var(--fp-bg-base)"/>
-        </svg>
-      </span>
+      <span class="fp-archetype-icon-tile"><img src="https://cdn.jsdelivr.net/gh/thunder-hawk/bestiaire@main/icones-archetype/mage.png" alt="Mage"></span>
       <span class="fp-archetype-nom">Mage</span>
       <span class="fp-archetype-cadenas" hidden>verrouillé</span>
     </button>
