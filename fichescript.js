@@ -303,7 +303,7 @@ const FICHE_NOMS_SLOTS = {
    (thunder-hawk/bestiaire) via jsDelivr, comme fiche-script.js
    lui-même. Remplace juste la partie "LIEN_DIRECT_VERS_DOSSIER" une
    fois les images poussées. */
-const FICHE_ICONES_BASE_URL = "https://cdn.jsdelivr.net/gh/thunder-hawk/bestiaire@main/icones-niveau";
+const FICHE_ICONES_BASE_URL = "LIEN_DIRECT_VERS_DOSSIER_ICONES_NIVEAU";
 
 /* Injecté nous-mêmes en JS au chargement (voir ficheInjecterStyle()
    plus bas) plutôt que via un <link> séparé — comme ça, l'endroit où
@@ -577,7 +577,7 @@ const FICHE_CSS = `
   border: 1px solid var(--fp-border-color);
   transition: all 0.25s ease;
 }
-.fp-archetype-icon svg { width: 26px; height: 26px; display: block; }
+.fp-archetype-icon svg { width: 26px !important; height: 26px !important; display: block !important; max-width: none !important; }
 .fp-archetype-icon .fp-archetype-nom {
   font-family: var(--fp-font-title);
   font-weight: 700;
