@@ -303,7 +303,7 @@ const FICHE_NOMS_SLOTS = {
    (thunder-hawk/bestiaire) via jsDelivr, comme fiche-script.js
    lui-même. Remplace juste la partie "LIEN_DIRECT_VERS_DOSSIER" une
    fois les images poussées. */
-const FICHE_ICONES_BASE_URL = "https://cdn.jsdelivr.net/gh/thunder-hawk/bestiaire@main/icones-niveau";
+const FICHE_ICONES_BASE_URL = "LIEN_DIRECT_VERS_DOSSIER_ICONES_NIVEAU";
 
 /* Injecté nous-mêmes en JS au chargement (voir ficheInjecterStyle()
    plus bas) plutôt que via un <link> séparé — comme ça, l'endroit où
@@ -314,24 +314,28 @@ const FICHE_CSS = `
 /* ==========================================================
    FICHE DE PERSONNAGE — pathofdawn.forumactif.com
    Système de niveaux (1 à 10) intégré dans le champ personnalisé
-   "campo18" (Stats) du profil. Même famille visuelle que la
-   boutique (bois/or/rouge sombre) pour rester cohérent.
+   "campo18" (Stats) du profil.
+   Palette et polices reprises directement du thème actuel du forum
+   (noir profond, rouge sang, filets or — Playfair Display / Montserrat,
+   déjà chargées sitewide) plutôt que de l'ancienne palette bois/parchemin,
+   avec une mise en page en "cartes" façon tableau de bord de jeu.
    ========================================================== */
 :root {
-  --fp-bg-bois: #1c140f;
-  --fp-bg-bois-clair: #241a13;
-  --fp-bg-etal: #2a1f18;
-  --fp-text-main: #d3c4a9;
-  --fp-text-muted: #8c7d6b;
-  --fp-accent-gold: #c2a057;
-  --fp-accent-red: #8f2d2d;
-  --fp-accent-red-clair: #b23c3c;
-  --fp-border-color: #3d2b1f;
-  --fp-stat-pv: #8aab74;
-  --fp-stat-dps: #b1524f;
-  --fp-stat-pouvoir: #7a93c2;
-  --fp-font-title: 'Cinzel', serif;
-  --fp-font-body: 'Crimson Text', serif;
+  --fp-bg-base: #0b0a0d;
+  --fp-bg-panel: #17151b;
+  --fp-bg-panel-clair: #201d25;
+  --fp-text-main: #ece7e2;
+  --fp-text-muted: #a89fa0;
+  --fp-accent-gold: #b8975f;
+  --fp-accent-gold-clair: #e8c98a;
+  --fp-accent-red: #9c2a22;
+  --fp-accent-red-clair: #e0392c;
+  --fp-border-color: rgba(184,151,95,0.22);
+  --fp-stat-pv: #5fae6f;
+  --fp-stat-dps: #d94436;
+  --fp-stat-pouvoir: #9179b5;
+  --fp-font-title: 'Playfair Display', 'Cinzel', serif;
+  --fp-font-body: 'Montserrat', 'Crimson Text', sans-serif;
 }
 
 .fiche-progression,
@@ -348,15 +352,15 @@ const FICHE_CSS = `
   width: 100% !important;
   max-width: 680px !important;
   margin: 20px auto !important;
-  background: linear-gradient(180deg, var(--fp-bg-bois) 0%, #150f0b 100%);
+  background: linear-gradient(165deg, var(--fp-bg-panel) 0%, var(--fp-bg-base) 65%);
   color: var(--fp-text-main);
   font-family: var(--fp-font-body);
   line-height: 1.5;
   font-size: 1rem;
-  padding: 20px;
+  padding: 22px;
   border: 1px solid var(--fp-border-color);
-  border-radius: 4px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 60px rgba(0,0,0,0.6);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.03);
   position: relative;
 }
 
@@ -364,43 +368,48 @@ const FICHE_CSS = `
 .fp-header {
   display: flex !important;
   align-items: center;
-  gap: 16px;
-  padding-bottom: 16px;
-  margin-bottom: 16px !important;
+  gap: 18px;
+  padding-bottom: 18px;
+  margin-bottom: 18px !important;
   border-bottom: 1px solid var(--fp-border-color);
 }
 
 .fp-niveau-info { flex: 1 1 auto; min-width: 0; }
 .fp-niveau-label {
   font-family: var(--fp-font-title);
-  color: var(--fp-accent-gold);
-  font-size: 1.15rem;
-  letter-spacing: 0.5px;
+  color: var(--fp-accent-gold-clair);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 .fp-solde {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--fp-text-muted);
-  margin-top: 4px !important;
+  margin-top: 5px !important;
 }
-.fp-solde-val { color: var(--fp-accent-gold); font-weight: 600; }
+.fp-solde-val { color: var(--fp-accent-gold-clair); font-weight: 600; }
 .fp-archetype-actuelle,
-.fp-race-actuelle { color: var(--fp-accent-gold); font-weight: 600; }
+.fp-race-actuelle { color: var(--fp-accent-red-clair); font-weight: 600; }
 
 /* ---------- Badge de niveau ----------
    Une illustration de bouclier par niveau (1 à 10, voir
-   FICHE_ICONES_BASE_URL), avec une lueur qui s'intensifie autour au
-   fur et à mesure (pilotée par des variables CSS selon data-niveau),
-   plutôt qu'un simple cercle généré en CSS. */
+   FICHE_ICONES_BASE_URL), posée sur une tuile arrondie façon "icône de
+   compétence", avec une lueur qui s'intensifie autour au fur et à
+   mesure (pilotée par des variables CSS selon data-niveau). */
 .fp-badge {
   --badge-lueur: rgba(0,0,0,0);
   --badge-lueur-taille: 0px;
-  flex: 0 0 64px;
-  width: 64px;
-  height: 64px;
+  flex: 0 0 68px;
+  width: 68px;
+  height: 68px;
   display: flex !important;
   align-items: center;
   justify-content: center;
   position: relative;
+  background: var(--fp-bg-panel-clair);
+  border: 1px solid var(--fp-border-color);
+  border-radius: 14px;
+  padding: 8px;
 }
 .fp-badge-img {
   height: 100%;
@@ -413,22 +422,22 @@ const FICHE_CSS = `
 }
 
 /* Paliers visuels : l'illustration elle-même fait déjà le plus gros du
-   travail (bois brut -> blindage doré), on ajoute juste une lueur qui
-   grandit avec le niveau, jusqu'à une pulsation douce au niveau 10. */
+   travail, on ajoute juste une lueur or -> rouge qui grandit avec le
+   niveau, jusqu'à une pulsation au niveau 10. */
 .fp-badge[data-niveau="1"] { --badge-lueur: rgba(0,0,0,0); --badge-lueur-taille: 0px; }
-.fp-badge[data-niveau="2"] { --badge-lueur: rgba(194,160,87,0.25); --badge-lueur-taille: 4px; }
-.fp-badge[data-niveau="3"] { --badge-lueur: rgba(194,160,87,0.35); --badge-lueur-taille: 6px; }
-.fp-badge[data-niveau="4"] { --badge-lueur: rgba(200,200,200,0.35); --badge-lueur-taille: 7px; }
-.fp-badge[data-niveau="5"] { --badge-lueur: rgba(210,210,210,0.4); --badge-lueur-taille: 9px; }
-.fp-badge[data-niveau="6"] { --badge-lueur: rgba(194,160,87,0.5); --badge-lueur-taille: 10px; }
-.fp-badge[data-niveau="7"] { --badge-lueur: rgba(194,160,87,0.6); --badge-lueur-taille: 13px; }
-.fp-badge[data-niveau="8"] { --badge-lueur: rgba(212,180,101,0.7); --badge-lueur-taille: 16px; }
-.fp-badge[data-niveau="9"] { --badge-lueur: rgba(178,60,60,0.6); --badge-lueur-taille: 18px; }
-.fp-badge[data-niveau="10"] { --badge-lueur: rgba(178,60,60,0.8); --badge-lueur-taille: 22px; }
+.fp-badge[data-niveau="2"] { --badge-lueur: rgba(184,151,95,0.3); --badge-lueur-taille: 4px; border-color: rgba(184,151,95,0.4); }
+.fp-badge[data-niveau="3"] { --badge-lueur: rgba(184,151,95,0.4); --badge-lueur-taille: 6px; border-color: rgba(184,151,95,0.5); }
+.fp-badge[data-niveau="4"] { --badge-lueur: rgba(232,201,138,0.4); --badge-lueur-taille: 7px; border-color: rgba(184,151,95,0.55); }
+.fp-badge[data-niveau="5"] { --badge-lueur: rgba(232,201,138,0.45); --badge-lueur-taille: 9px; border-color: rgba(184,151,95,0.6); }
+.fp-badge[data-niveau="6"] { --badge-lueur: rgba(232,201,138,0.55); --badge-lueur-taille: 10px; border-color: var(--fp-accent-gold); }
+.fp-badge[data-niveau="7"] { --badge-lueur: rgba(232,201,138,0.65); --badge-lueur-taille: 13px; border-color: var(--fp-accent-gold); }
+.fp-badge[data-niveau="8"] { --badge-lueur: rgba(232,201,138,0.75); --badge-lueur-taille: 16px; border-color: var(--fp-accent-gold-clair); }
+.fp-badge[data-niveau="9"] { --badge-lueur: rgba(224,57,44,0.65); --badge-lueur-taille: 18px; border-color: var(--fp-accent-red-clair); }
+.fp-badge[data-niveau="10"] { --badge-lueur: rgba(224,57,44,0.85); --badge-lueur-taille: 22px; border-color: var(--fp-accent-red-clair); }
 .fp-badge[data-niveau="10"] .fp-badge-img { animation: fpBadgePulse 2.4s ease-in-out infinite; }
 @keyframes fpBadgePulse {
-  0%, 100% { filter: drop-shadow(0 0 18px rgba(178,60,60,0.6)); }
-  50%      { filter: drop-shadow(0 0 30px rgba(212,180,101,0.9)); }
+  0%, 100% { filter: drop-shadow(0 0 18px rgba(224,57,44,0.65)); }
+  50%      { filter: drop-shadow(0 0 30px rgba(232,201,138,0.9)); }
 }
 
 /* Petit éclat au moment même où un niveau vient d'être gagné. */
@@ -446,55 +455,61 @@ const FICHE_CSS = `
   display: flex !important;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 16px !important;
+  margin-bottom: 18px !important;
 }
 .fp-stat {
   flex: 1 1 220px;
-  background: var(--fp-bg-etal);
+  background: var(--fp-bg-panel);
   border: 1px solid var(--fp-border-color);
-  border-radius: 4px;
-  padding: 10px 14px;
+  border-left: 3px solid var(--fp-border-color);
+  border-radius: 10px;
+  padding: 12px 15px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
+.fp-stat[data-type="pv"] { border-left-color: var(--fp-stat-pv); }
+.fp-stat[data-type="dps"] { border-left-color: var(--fp-stat-dps); }
 .fp-stat-label {
   display: block !important;
   font-family: var(--fp-font-title);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   color: var(--fp-text-muted);
-  margin-bottom: 4px !important;
+  margin-bottom: 5px !important;
 }
 .fp-stat[data-type="pv"] .fp-stat-label { color: var(--fp-stat-pv); }
 .fp-stat[data-type="dps"] .fp-stat-label { color: var(--fp-stat-dps); }
 .fp-stat-total {
   font-family: var(--fp-font-title);
-  font-size: 1.4rem;
+  font-weight: 700;
+  font-size: 1.45rem;
   color: var(--fp-text-main);
 }
 .fp-stat-detail {
   display: block !important;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--fp-text-muted);
-  margin-top: 4px !important;
+  margin-top: 5px !important;
 }
 .fp-pv-base,
 .fp-dps-base { color: var(--fp-text-main); font-weight: 600; }
 .fp-bonus,
 .fp-bonus-competences,
-.fp-bonus-equipement { color: var(--fp-accent-gold); font-weight: 600; }
+.fp-bonus-equipement { color: var(--fp-accent-gold-clair); font-weight: 600; }
 
 /* ---------- Équipement porté (affichage seul, ça s'équipe à la Boutique) ---------- */
-.fp-equipement { margin-bottom: 16px !important; }
-.fp-equip-liste { display: flex !important; flex-direction: column; gap: 6px; }
+.fp-equipement { margin-bottom: 18px !important; }
+.fp-equip-liste { display: flex !important; flex-direction: column; gap: 7px; }
 .fp-equip-item {
   display: flex !important;
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
-  background: var(--fp-bg-etal);
+  background: var(--fp-bg-panel);
   border: 1px solid var(--fp-border-color);
-  border-radius: 4px;
-  padding: 7px 12px;
+  border-radius: 9px;
+  padding: 8px 13px;
   font-size: 0.85rem;
 }
 /* "display: block" plutôt qu'un <br> entre les deux : la règle
@@ -502,7 +517,7 @@ const FICHE_CSS = `
    (qui sert à nettoyer les <br> parasites que Forumactif ajoute
    ailleurs) aurait aussi caché un <br> ici, collant la catégorie et
    le nom de l'objet sur la même ligne (bug remonté par test). */
-.fp-equip-slot { display: block !important; color: var(--fp-text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px !important; }
+.fp-equip-slot { display: block !important; color: var(--fp-text-muted); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px !important; }
 .fp-equip-nom { color: var(--fp-text-main); }
 .fp-equip-bonus { font-weight: 600; }
 .fp-equip-bonus.stat-pv { color: var(--fp-stat-pv); }
@@ -511,45 +526,78 @@ const FICHE_CSS = `
 
 /* ---------- Titres de section ---------- */
 .fp-section-titre {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
   font-family: var(--fp-font-title);
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.82rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--fp-accent-gold);
-  margin: 20px 0 10px !important;
-  padding-top: 16px;
+  letter-spacing: 0.6px;
+  color: var(--fp-accent-gold-clair);
+  margin: 22px 0 12px !important;
+  padding-top: 18px;
   border-top: 1px solid var(--fp-border-color);
+}
+.fp-section-titre::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--fp-accent-red-clair);
+  border-radius: 2px;
+  transform: rotate(45deg);
+  flex: 0 0 auto;
 }
 
 /* ---------- Archétype ---------- */
-.fp-archetypes { display: flex !important; gap: 16px; margin-bottom: 10px !important; flex-wrap: wrap; }
+.fp-archetypes { display: flex !important; gap: 14px; margin-bottom: 10px !important; flex-wrap: wrap; }
 .fp-archetype-icon {
   display: flex !important;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   width: 96px;
-  padding: 12px 8px;
-  background: var(--fp-bg-etal);
+  padding: 14px 8px;
+  background: var(--fp-bg-panel);
   border: 1px solid var(--fp-border-color);
-  border-radius: 6px;
+  border-radius: 12px;
   color: var(--fp-text-muted);
   cursor: pointer;
   transition: all 0.25s ease;
 }
-.fp-archetype-icon svg { width: 30px; height: 30px; display: block; }
+.fp-archetype-icon-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  background: var(--fp-bg-panel-clair);
+  border: 1px solid var(--fp-border-color);
+  transition: all 0.25s ease;
+}
+.fp-archetype-icon svg { width: 26px; height: 26px; display: block; }
 .fp-archetype-icon .fp-archetype-nom {
   font-family: var(--fp-font-title);
+  font-weight: 700;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.fp-archetype-icon:hover:not(.fp-non-choisi) { border-color: var(--fp-accent-red-clair); color: #f0e6d2; }
+.fp-archetype-icon:hover:not(.fp-non-choisi) { border-color: var(--fp-accent-red-clair); color: var(--fp-text-main); transform: translateY(-1px); }
+.fp-archetype-icon:hover:not(.fp-non-choisi) .fp-archetype-icon-tile { border-color: var(--fp-accent-red-clair); box-shadow: 0 0 12px rgba(224,57,44,0.25); }
 .fp-archetype-icon.fp-choisi {
-  color: var(--fp-accent-gold);
+  color: var(--fp-accent-gold-clair);
   border-color: var(--fp-accent-gold);
-  box-shadow: 0 0 12px rgba(194,160,87,0.35), inset 0 0 10px rgba(194,160,87,0.1);
+  background: var(--fp-bg-panel-clair);
+  box-shadow: 0 0 16px rgba(184,151,95,0.3), inset 0 0 10px rgba(184,151,95,0.12);
   cursor: default;
+}
+.fp-archetype-icon.fp-choisi .fp-archetype-icon-tile {
+  background: linear-gradient(160deg, rgba(232,201,138,0.18) 0%, rgba(184,151,95,0.06) 100%);
+  border-color: var(--fp-accent-gold);
+  box-shadow: 0 0 14px rgba(232,201,138,0.35), inset 0 0 8px rgba(232,201,138,0.15);
 }
 .fp-archetype-icon.fp-non-choisi { opacity: 0.35; cursor: not-allowed; }
 .fp-archetype-icon .fp-archetype-cadenas { font-size: 0.65rem; color: var(--fp-text-muted); margin-top: -2px; }
@@ -558,10 +606,10 @@ const FICHE_CSS = `
 .fp-competences { display: flex !important; flex-direction: column; gap: 12px; }
 .fp-competences-vide { font-size: 0.85rem; font-style: italic; color: var(--fp-text-muted); }
 .fp-competence {
-  background: var(--fp-bg-etal);
+  background: var(--fp-bg-panel);
   border: 1px solid var(--fp-border-color);
-  border-radius: 4px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 13px 15px;
 }
 .fp-competence-header {
   display: flex !important;
@@ -569,31 +617,32 @@ const FICHE_CSS = `
   align-items: baseline;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 6px !important;
+  margin-bottom: 7px !important;
 }
-.fp-competence-nom { font-family: var(--fp-font-title); color: var(--fp-accent-gold); font-size: 1rem; }
+.fp-competence-nom { font-family: var(--fp-font-title); font-weight: 700; color: var(--fp-accent-gold-clair); font-size: 1rem; }
 .fp-competence-categorie {
-  font-size: 0.65rem;
+  font-size: 0.63rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 2px 7px;
-  border-radius: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
   border: 1px solid;
 }
 .fp-competence-categorie[data-categorie="physique"] { color: var(--fp-stat-dps); border-color: var(--fp-stat-dps); }
 .fp-competence-categorie[data-categorie="pouvoir"] { color: var(--fp-stat-pouvoir); border-color: var(--fp-stat-pouvoir); }
-.fp-competence-pips { display: flex !important; gap: 4px; margin: 6px 0 !important; }
-.fp-pip { width: 14px; height: 14px; border-radius: 2px; border: 1px solid var(--fp-border-color); background: var(--fp-bg-bois-clair); }
-.fp-pip-acquis { background: var(--fp-accent-gold); border-color: var(--fp-accent-gold); }
-.fp-pip-verrouille { background: repeating-linear-gradient(45deg, #241a13, #241a13 2px, #150f0b 2px, #150f0b 4px); opacity: 0.6; }
+.fp-competence-pips { display: flex !important; gap: 4px; margin: 7px 0 !important; }
+.fp-pip { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--fp-border-color); background: var(--fp-bg-panel-clair); }
+.fp-pip-acquis { background: var(--fp-accent-gold); border-color: var(--fp-accent-gold-clair); box-shadow: 0 0 6px rgba(232,201,138,0.5); }
+.fp-pip-verrouille { background: repeating-linear-gradient(45deg, #201d25, #201d25 2px, #14121a 2px, #14121a 4px); opacity: 0.6; }
 .fp-competence-lore { font-size: 0.8rem; font-style: italic; color: var(--fp-text-main); margin-bottom: 8px !important; line-height: 1.4; }
 .fp-competence-actions { display: flex !important; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px !important; }
 .fp-competence-manque { font-size: 0.72rem; color: var(--fp-accent-red-clair); }
 .fp-competence-plafond { font-size: 0.72rem; color: var(--fp-text-muted); }
 
 /* ---------- Réinitialisation de la spécialité ---------- */
-.fp-reset-bloc { margin-top: 20px !important; padding-top: 14px; border-top: 1px solid var(--fp-border-color); }
-.fp-reset-texte { font-size: 0.78rem; color: var(--fp-text-muted); margin-bottom: 8px !important; line-height: 1.4; }
+.fp-reset-bloc { margin-top: 22px !important; padding-top: 15px; border-top: 1px solid var(--fp-border-color); }
+.fp-reset-texte { font-size: 0.78rem; color: var(--fp-text-muted); margin-bottom: 9px !important; line-height: 1.4; }
 
 /* ---------- Boutons ---------- */
 .fp-actions {
@@ -604,29 +653,39 @@ const FICHE_CSS = `
 }
 .fp-btn {
   font-family: var(--fp-font-title);
-  font-size: 0.8rem;
+  font-weight: 700;
+  font-size: 0.78rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  padding: 9px 16px;
-  border-radius: 3px;
+  padding: 10px 18px;
+  border-radius: 999px;
   border: 1px solid var(--fp-border-color);
-  background: var(--fp-bg-etal);
+  background: var(--fp-bg-panel-clair);
   color: var(--fp-text-main);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .fp-btn:hover:not(:disabled) {
-  border-color: var(--fp-accent-red-clair);
-  color: #f0e6d2;
+  border-color: var(--fp-accent-gold);
+  color: var(--fp-accent-gold-clair);
+  transform: translateY(-1px);
 }
 .fp-btn-acheter {
-  background: var(--fp-accent-red);
+  background: linear-gradient(180deg, var(--fp-accent-red-clair) 0%, var(--fp-accent-red) 100%);
   border-color: var(--fp-accent-red-clair);
-  color: #f0e6d2;
+  color: #fdf3ee;
+  box-shadow: 0 4px 16px rgba(224,57,44,0.35);
+}
+.fp-btn-acheter:hover:not(:disabled) {
+  border-color: var(--fp-accent-gold-clair);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(224,57,44,0.5);
 }
 .fp-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .fp-manque {
@@ -1383,12 +1442,25 @@ const FICHE_SQUELETTE = `
   <div class="fp-section-titre fp-edition">Spécialité</div>
   <div class="fp-archetypes fp-edition">
     <button type="button" class="fp-archetype-icon" data-archetype="guerrier">
-      <svg viewBox="0 0 40 40"><line x1="10" y1="30" x2="28" y2="12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="19" y1="21" x2="13" y2="27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="10" y1="30" x2="6" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="28" cy="12" r="2" fill="currentColor"/></svg>
+      <span class="fp-archetype-icon-tile">
+        <svg viewBox="0 0 24 24">
+          <path d="M11.2 3 L12.8 3 L12.8 21 L11.2 21 Z" fill="currentColor"/>
+          <path d="M12 5.5 C8.5 3.2 4 3.3 2 6 C3.6 7.4 4.4 9.4 4 11.5 C7.2 11 10 9 12 8.2 Z" fill="currentColor"/>
+          <path d="M12 5.5 C15.5 3.2 20 3.3 22 6 C20.4 7.4 19.6 9.4 20 11.5 C16.8 11 14 9 12 8.2 Z" fill="currentColor"/>
+          <circle cx="12" cy="21.5" r="1.3" fill="currentColor"/>
+        </svg>
+      </span>
       <span class="fp-archetype-nom">Guerrier</span>
       <span class="fp-archetype-cadenas" hidden>verrouillé</span>
     </button>
     <button type="button" class="fp-archetype-icon" data-archetype="mage">
-      <svg viewBox="0 0 40 40"><line x1="20" y1="9" x2="20" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="20" cy="8" r="1.5" fill="currentColor"/></svg>
+      <span class="fp-archetype-icon-tile">
+        <svg viewBox="0 0 24 24">
+          <line x1="15" y1="6.5" x2="6" y2="21.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+          <path d="M15 1.7 L19 6 L15 10.3 L11 6 Z" fill="currentColor"/>
+          <circle cx="15" cy="6" r="1.6" fill="var(--fp-bg-base)"/>
+        </svg>
+      </span>
       <span class="fp-archetype-nom">Mage</span>
       <span class="fp-archetype-cadenas" hidden>verrouillé</span>
     </button>
