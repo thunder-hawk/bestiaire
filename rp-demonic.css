@@ -1,0 +1,35 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nosifer&display=swap');
+
+.rp-demonic{
+  display:inline-block;
+  font-family:'Nosifer', serif;
+  font-size:.55em;
+  letter-spacing:1px;
+  color:#f2efe9;
+  filter:blur(.9px);
+  text-shadow:
+    0 0 6px rgba(196,58,46,.55),
+    0 0 18px rgba(120,0,20,.45),
+    0 0 2px rgba(0,0,0,.6);
+  animation:rp-float 6s ease-in-out infinite;
+  transition:filter .3s ease, color .25s ease, text-shadow .25s ease;
+  will-change:transform, filter;
+}
+
+.rp-demonic:hover{
+  color:#fff;
+  filter:blur(0);
+  text-shadow:
+    0 0 8px rgba(255,80,40,.8),
+    0 0 24px rgba(160,0,20,.65),
+    0 0 46px rgba(120,0,40,.5);
+}
+
+@keyframes rp-float{
+  0%,100%{ transform:translate3d(0,0,0) rotate(0deg); }
+  50%    { transform:translate3d(0,-6px,0) rotate(.4deg); }
+}
+</style>
+
+<span class="rp-demonic">« Ta voix ne t'appartient plus. »</span>
