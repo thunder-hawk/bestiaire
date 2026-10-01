@@ -1,9 +1,5 @@
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Nosifer&display=swap');
-
 .rp-demonic{
   display:inline-block;
-  font-family:'Nosifer', serif;
   font-size:.55em;
   letter-spacing:1px;
   color:#f2efe9;
@@ -30,6 +26,3 @@
   0%,100%{ transform:translate3d(0,0,0) rotate(0deg); }
   50%    { transform:translate3d(0,-6px,0) rotate(.4deg); }
 }
-</style>
-
-<span class="rp-demonic">« Ta voix ne t'appartient plus. »</span>
