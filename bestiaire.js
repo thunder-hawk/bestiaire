@@ -106,6 +106,27 @@ function couleurValide(c) {
   return null;
 }
 
+// Couleur RÉELLEMENT affichée par un élément du post, quelle que soit la
+// façon dont le forum la lui donne : style="color:...", <font color>,
+// mais aussi une règle CSS du forum (ex. <strong color="exotique"> ou
+// <span class="rare"> colorés par la feuille de style du forum). On
+// demande au navigateur la couleur calculée de l'élément et on la compare
+// à celle de son parent : si elles diffèrent, c'est que ce morceau de
+// texte a sa propre couleur, qu'on reporte alors dans la fenêtre.
+// (Les blocs data-... sont cachés, mais le navigateur calcule quand même
+// leur couleur.)
+function couleurElement(n) {
+  try {
+    const parent = n.parentElement;
+    if (parent && window.getComputedStyle) {
+      const c = getComputedStyle(n).color;
+      if (c && c !== getComputedStyle(parent).color) return couleurValide(c);
+      return null;
+    }
+  } catch (e) { /* on retombe sur la lecture simple ci-dessous */ }
+  return couleurValide((n.style && n.style.color) || n.getAttribute('color'));
+}
+
 const BALISES_HTML = { b: 'b', strong: 'b', i: 'i', em: 'i', u: 'u', s: 's', strike: 's', del: 's' };
 
 // Lit un bloc de la carte en gardant sa mise en forme, convertie en
@@ -125,7 +146,7 @@ function versBalisage(el) {
     let inner = versBalisage(n);
     const simple = BALISES_HTML[tag];
     if (simple) inner = '[' + simple + ']' + inner + '[/' + simple + ']';
-    const couleur = couleurValide((n.style && n.style.color) || n.getAttribute('color'));
+    const couleur = couleurElement(n);
     if (couleur) inner = '[color=' + couleur + ']' + inner + '[/color]';
     if (n.style && /bold|[6-9]00/.test(n.style.fontWeight || '')) inner = '[b]' + inner + '[/b]';
     if (n.style && n.style.fontStyle === 'italic') inner = '[i]' + inner + '[/i]';
