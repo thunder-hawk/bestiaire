@@ -39,7 +39,13 @@ function nettoyerParasitesEditeur(racine) {
       // au-dessus à partir des <br> — recollant "Vitalité : 800" et
       // "Vitesse : 500" en "Vitalité : 800Vitesse : 500". Ici on ne vise
       // que les vrais parasites (espace normal, nbsp), jamais un \n.
-      /^[^\S\n]*$/.test(node.textContent)
+      /^[^\S\n]*$/.test(node.textContent) &&
+      // Dans une fiche (.creature-data), un espace "seul" peut être un
+      // vrai espace entre deux mots mis en forme (ex. un mot en couleur
+      // suivi d'un mot en gras) : on le garde, sinon les mots se
+      // colleraient. Ces blocs sont cachés, donc aucun risque de
+      // décalage de mise en page.
+      !(node.parentElement && node.parentElement.closest('.creature-data'))
     ) {
       videsASupprimer.push(node);
     }
@@ -51,10 +57,22 @@ function nettoyerParasitesEditeur(racine) {
 
 /* ============================================================
    FICHES DE CRÉATURE : à partir de simples lignes de texte tapées
-   dans bestiaire-contenu.html (voir les instructions de ce fichier),
-   on reconstruit ici l'affichage en jolie liste à puces pour la
-   fenêtre détaillée. Personne n'a besoin d'écrire de balises
-   <ul>/<li>/<strong> à la main.
+   dans les blocs data-... de chaque carte, on reconstruit ici
+   l'affichage en jolie liste à puces / paragraphes pour la fenêtre
+   détaillée. Personne n'a besoin d'écrire de <ul>/<li> à la main.
+
+   MISE EN FORME (couleurs, gras...) — dans data-desc, data-stats,
+   data-abilities, data-loot (et le nom de la créature), on peut
+   utiliser au choix :
+     - du BBCode :  [color=red]Croc maudit[/color]  [color=#3fa7ff]...[/color]
+                    [b]gras[/b]  [i]italique[/i]  [u]souligné[/u]  [s]barré[/s]
+     - ou le HTML équivalent : <span style="color:red">...</span>,
+       <b>, <strong>, <i>, <em>, <u>, <s>, <font color="red">.
+   Les deux marchent même si le forum a déjà transformé le BBCode en
+   HTML à l'affichage. Une balise peut couvrir plusieurs lignes
+   (ex. tout un bloc de butin en vert). Tout ce qui n'est pas dans
+   cette liste reste du texte normal : "[Imblocable]", "[Début : mars
+   2017]"... s'affichent tels quels, comme avant.
    ============================================================ */
 
 // Sécurité : neutralise les caractères qui ont un sens spécial en HTML,
@@ -64,7 +82,8 @@ function echapperHtml(texte) {
   return String(texte)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // Enleve les accents et met en minuscules, pour reconnaitre "Vitalite",
@@ -72,15 +91,166 @@ function echapperHtml(texte) {
 function normaliser(texte) {
   return String(texte)
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .trim();
 }
 
+// Couleurs acceptées : nom (red, darkred, gold...), #hex, rgb()/rgba().
+// Tout le reste est refusé (la balise reste alors du texte normal).
+function couleurValide(c) {
+  c = String(c || '').trim().replace(/\s+/g, '');
+  if (/^#[0-9a-f]{3,8}$/i.test(c)) return c;
+  if (/^[a-z]{3,30}$/i.test(c)) return c;
+  if (/^rgba?\([\d.,%]+\)$/i.test(c)) return c;
+  return null;
+}
+
+const BALISES_HTML = { b: 'b', strong: 'b', i: 'i', em: 'i', u: 'u', s: 's', strike: 's', del: 's' };
+
+// Lit un bloc de la carte en gardant sa mise en forme, convertie en
+// BBCode simple : que le texte ait été tapé en BBCode ou en HTML (ou
+// que le forum ait déjà converti l'un en l'autre), on retombe toujours
+// sur le même format, traité ensuite par lireBalises().
+function versBalisage(el) {
+  if (!el) return '';
+  let out = '';
+  el.childNodes.forEach((n) => {
+    if (n.nodeType === Node.TEXT_NODE) { out += n.textContent; return; }
+    if (n.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = n.tagName.toLowerCase();
+    if (tag === 'br') { out += '\n'; return; }
+    if (/^(script|style)$/.test(tag)) return;
+    if (n.classList && n.classList.contains('icon')) return; // icônes du titre
+    let inner = versBalisage(n);
+    const simple = BALISES_HTML[tag];
+    if (simple) inner = '[' + simple + ']' + inner + '[/' + simple + ']';
+    const couleur = couleurValide((n.style && n.style.color) || n.getAttribute('color'));
+    if (couleur) inner = '[color=' + couleur + ']' + inner + '[/color]';
+    if (n.style && /bold|[6-9]00/.test(n.style.fontWeight || '')) inner = '[b]' + inner + '[/b]';
+    if (n.style && n.style.fontStyle === 'italic') inner = '[i]' + inner + '[/i]';
+    if (n.style && /underline/.test(n.style.textDecoration || '')) inner = '[u]' + inner + '[/u]';
+    out += inner;
+    if (/^(p|div|li)$/.test(tag)) out += '\n';
+  });
+  return out;
+}
+
+// Découpe le texte en jetons : morceaux de texte, balises ouvrantes,
+// balises fermantes. Seules les balises connues sont reconnues.
+function lireBalises(texte) {
+  const jetons = [];
+  const re = /\[(\/?)(b|i|u|s|color)(?:=([^\]\n]{1,40}))?\]/gi;
+  let dernier = 0, m;
+  const ajouterTexte = (t) => { if (t) jetons.push({ t: 'txt', v: t.replace(/ /g, ' ') }); };
+  while ((m = re.exec(texte))) {
+    const ferme = m[1] === '/';
+    const nom = m[2].toLowerCase();
+    let ok = true, couleur = null;
+    if (ferme) ok = m[3] === undefined;
+    else if (nom === 'color') ok = !!(couleur = couleurValide(m[3]));
+    else ok = m[3] === undefined;
+    if (!ok) continue; // pas une vraie balise : reste du texte
+    ajouterTexte(texte.slice(dernier, m.index));
+    jetons.push(ferme ? { t: 'fin', nom } : { t: 'deb', nom, couleur });
+    dernier = re.lastIndex;
+  }
+  ajouterTexte(texte.slice(dernier));
+  return jetons;
+}
+
+// Fait avancer la pile des balises ouvertes au fil des jetons.
+function majPile(pile, j) {
+  if (j.t === 'deb') pile.push(j);
+  else if (j.t === 'fin') {
+    for (let k = pile.length - 1; k >= 0; k--) {
+      if (pile[k].nom === j.nom) { pile.splice(k, 1); break; }
+    }
+  }
+}
+
+// Coupe une liste de jetons à chaque retour à la ligne. Une balise
+// encore ouverte en fin de ligne est rouverte au début de la suivante.
+function enLignes(jetons) {
+  const lignes = [];
+  let courante = [];
+  const pile = [];
+  jetons.forEach((j) => {
+    if (j.t !== 'txt') { courante.push(j); majPile(pile, j); return; }
+    const morceaux = j.v.split('\n');
+    morceaux.forEach((mo, idx) => {
+      if (idx > 0) {
+        lignes.push(courante);
+        courante = pile.map((p) => ({ ...p }));
+      }
+      if (mo) courante.push({ t: 'txt', v: mo });
+    });
+  });
+  lignes.push(courante);
+  return lignes;
+}
+
+function texteVisible(jetons) {
+  return jetons.filter((j) => j.t === 'txt').map((j) => j.v).join('');
+}
+
+// Coupe une ligne en deux à la position `pos` du texte visible (le ":"
+// du libellé), en rouvrant à droite les balises encore ouvertes.
+function couperA(jetons, pos) {
+  const gauche = [], droite = [];
+  const pile = [];
+  let vu = 0, coupe = false;
+  jetons.forEach((j) => {
+    if (coupe) { droite.push(j); return; }
+    if (j.t !== 'txt') { gauche.push(j); majPile(pile, j); return; }
+    if (vu + j.v.length <= pos) { gauche.push(j); vu += j.v.length; return; }
+    const i = pos - vu;
+    if (i > 0) gauche.push({ t: 'txt', v: j.v.slice(0, i) });
+    coupe = true;
+    pile.forEach((p) => droite.push({ ...p }));
+    const reste = j.v.slice(i + 1); // +1 : on saute le ":"
+    if (reste) droite.push({ t: 'txt', v: reste });
+  });
+  return [gauche, droite];
+}
+
+// Transforme une suite de jetons en HTML propre (balises toujours bien
+// refermées, fermetures orphelines ignorées, espaces de bord retirés).
+function rendreJetons(jetons) {
+  const liste = jetons.map((j) => ({ ...j }));
+  const txt = liste.filter((j) => j.t === 'txt');
+  if (txt.length) {
+    txt[0].v = txt[0].v.replace(/^\s+/, '');
+    txt[txt.length - 1].v = txt[txt.length - 1].v.replace(/\s+$/, '');
+  }
+  let html = '';
+  const pile = [];
+  const fermer = (p) => (p.nom === 'color' ? '</span>' : '</' + p.nom + '>');
+  liste.forEach((j) => {
+    if (j.t === 'txt') { html += echapperHtml(j.v); return; }
+    if (j.t === 'deb') {
+      pile.push(j);
+      html += j.nom === 'color'
+        ? '<span style="color:' + echapperHtml(j.couleur) + '">'
+        : '<' + j.nom + '>';
+      return;
+    }
+    const k = pile.map((p) => p.nom).lastIndexOf(j.nom);
+    if (k === -1) return;
+    const aRouvrir = pile.splice(k + 1);
+    for (let x = aRouvrir.length - 1; x >= 0; x--) html += fermer(aRouvrir[x]);
+    html += fermer(pile.pop());
+    aRouvrir.forEach((p) => {
+      pile.push(p);
+      html += p.nom === 'color' ? '<span style="color:' + echapperHtml(p.couleur) + '">' : '<' + p.nom + '>';
+    });
+  });
+  for (let x = pile.length - 1; x >= 0; x--) html += fermer(pile[x]);
+  return html;
+}
+
 // Les 3 statistiques de base ressortent chacune dans leur propre couleur
 // (voir bestiaire-style.css) au lieu du dore generique des autres titres.
-// Reconnu automatiquement a partir du libelle tape dans data-stats, sans
-// rien a faire de special cote contenu.
 const COULEURS_STATS = [
   { test: (n) => n.startsWith('vitalite'), classe: 'stat-vitalite' },
   { test: (n) => n.startsWith('vitesse'), classe: 'stat-vitesse' },
@@ -90,37 +260,29 @@ const COULEURS_STATS = [
 // Une ligne par info. Si la ligne commence par un court "Titre :", ce
 // titre est affiche en gras (utile pour "Vitalite : 300"). Sans ":" proche
 // du debut, la ligne est affichee telle quelle (utile pour un butin qui
-// n'a pas besoin de libelle, ex: "Croc de Lycanthrope (Rare)") : ca evite
-// aussi de couper en deux une phrase qui contiendrait elle-meme un ":"
-// plus loin dans le texte.
-// `colorerStats` n'est utilise que pour le bloc Statistiques (voir plus
-// bas) : il active la coloration Vitalite/Vitesse/Degats ci-dessus.
+// n'a pas besoin de libelle). Le ":" est cherché dans le texte VISIBLE :
+// les balises de couleur ne comptent pas dans la longueur du titre.
 const LONGUEUR_MAX_TITRE = 40;
 function texteEnListe(texteBrut, colorerStats) {
-  const lignes = (texteBrut || '')
-    .replace(/\u00A0/g, ' ')
-    .split('\n')
-    .map((ligne) => ligne.trim())
-    .filter(Boolean);
+  const lignes = enLignes(lireBalises(texteBrut || ''))
+    .filter((l) => texteVisible(l).trim());
 
   if (lignes.length === 0) return '<ul><li>/</li></ul>';
 
   const items = lignes.map((ligne) => {
-    const sep = ligne.indexOf(':');
-    if (sep > -1 && sep < ligne.length - 1 && sep <= LONGUEUR_MAX_TITRE) {
-      const labelBrut = ligne.slice(0, sep).trim();
-      const label = echapperHtml(labelBrut);
-      const reste = echapperHtml(ligne.slice(sep + 1).trim());
-
+    const visible = texteVisible(ligne);
+    const sep = visible.indexOf(':');
+    const avant = visible.slice(0, Math.max(sep, 0));
+    if (sep > -1 && visible.slice(sep + 1).trim() && avant.trim().length <= LONGUEUR_MAX_TITRE && avant.trim()) {
+      const [gauche, droite] = couperA(ligne, sep);
       let attributClasse = '';
       if (colorerStats) {
-        const match = COULEURS_STATS.find((c) => c.test(normaliser(labelBrut)));
+        const match = COULEURS_STATS.find((c) => c.test(normaliser(avant)));
         if (match) attributClasse = ` class="${match.classe}"`;
       }
-
-      return `<li><strong${attributClasse}>${label} :</strong> ${reste}</li>`;
+      return `<li><strong${attributClasse}>${rendreJetons(gauche)} :</strong> ${rendreJetons(droite)}</li>`;
     }
-    return `<li>${echapperHtml(ligne)}</li>`;
+    return `<li>${rendreJetons(ligne)}</li>`;
   });
 
   return `<ul>${items.join('')}</ul>`;
@@ -130,14 +292,23 @@ function texteEnListe(texteBrut, colorerStats) {
 // Sinon, tout reste dans un seul paragraphe (les retours à la ligne
 // simples ne comptent pas comme un saut de paragraphe).
 function texteEnParagraphes(texteBrut) {
-  const paragraphes = (texteBrut || '')
-    .replace(/\u00A0/g, ' ')
-    .split(/\n\s*\n/)
-    .map((p) => echapperHtml(p.replace(/\n/g, ' ').trim()))
-    .filter(Boolean);
+  const paragraphes = [];
+  let courant = [];
+  enLignes(lireBalises(texteBrut || '')).forEach((l) => {
+    if (texteVisible(l).trim()) courant.push(rendreJetons(l));
+    else if (courant.length) { paragraphes.push(courant); courant = []; }
+  });
+  if (courant.length) paragraphes.push(courant);
+  return paragraphes.map((p) => `<p>${p.join(' ')}</p>`).join('');
+}
 
-  if (paragraphes.length === 0) return '';
-  return paragraphes.map((p) => `<p>${p}</p>`).join('');
+// Nom de la créature dans la fenêtre : garde les couleurs ({Boss} en
+// rouge, etc.), ignore les icônes.
+function titreEnHtml(el) {
+  return enLignes(lireBalises(versBalisage(el)))
+    .filter((l) => texteVisible(l).trim())
+    .map(rendreJetons)
+    .join(' ');
 }
 
 /* Le bestiaire peut être collé plusieurs fois sur la même page (un sujet
@@ -221,15 +392,15 @@ function initInstance(instance) {
       e.preventDefault();
 
       modalImg.src = card.querySelector('.creature-img').src;
-      modalTitle.textContent = card.querySelector('.creature-name').textContent.trim();
+      modalTitle.innerHTML = titreEnHtml(card.querySelector('.creature-name'));
 
       // Chaque champ de la fiche est du texte brut simple (une info par
       // ligne) — c'est ici qu'on le transforme en jolie mise en page.
       modalFamily.textContent = card.querySelector('.data-family').textContent.trim();
-      modalDesc.innerHTML = texteEnParagraphes(card.querySelector('.data-desc').textContent);
-      modalStats.innerHTML = texteEnListe(card.querySelector('.data-stats').textContent, true);
-      modalAbilities.innerHTML = texteEnListe(card.querySelector('.data-abilities').textContent);
-      modalLoot.innerHTML = texteEnListe(card.querySelector('.data-loot').textContent);
+      modalDesc.innerHTML = texteEnParagraphes(versBalisage(card.querySelector('.data-desc')));
+      modalStats.innerHTML = texteEnListe(versBalisage(card.querySelector('.data-stats')), true);
+      modalAbilities.innerHTML = texteEnListe(versBalisage(card.querySelector('.data-abilities')));
+      modalLoot.innerHTML = texteEnListe(versBalisage(card.querySelector('.data-loot')));
 
       modal.style.display = 'flex';
     });
